@@ -4,16 +4,18 @@ import pool from "../database";
 class ApiController {
   public async login(req: Request, res: Response) {
     const { user, pass } = req.body;
-    let sql = `SELECT username, correo, nombre, contrasena, Rol_idRol FROM Usuario
+    let sql = `SELECT username, correo, nombre, Rol_idRol FROM Usuario
         WHERE username=?
         AND contrasena=?`;
     try {
       const result = await pool.query(sql, [user, pass]);
-      res.status(200).json({ status: true, result: result });
+      if(result.length > 0) {
+        res.json(result);
+      }else{
+        res.json([]);
+      }
     } catch (err) {
-      res
-        .status(200)
-        .json({ status: false, result: "Error - Consulta incorrecta" });
+      res.json([]);
       console.log("ERROR: " + err);
     }
   }
@@ -60,7 +62,7 @@ class ApiController {
         idVisibilidad,
         idTipoArchivo,
       ]);
-      res.status(200).json({ status: true, result: result });
+      res.status(200).json({ status: true, result: "Archivo subido satisfactoriamente"});
     } catch (err) {
       res.status(200).json({ status: false, result: err });
       console.log("ERROR: " + err);
@@ -77,9 +79,13 @@ class ApiController {
     ORDER BY v.visibilidad, a.idArchivo`;
     try {
       const result = await pool.query(sql, [idUsuario]);
-      res.status(200).json({ status: true, result: result });
+      if(result.length > 0) {
+        res.json(result);
+      }else{
+        res.json([]);
+      }
     } catch (err) {
-      res.status(200).json({ status: false, result: err });
+      res.json([]);
       console.log("ERROR: " + err);
     }
   }
@@ -93,9 +99,13 @@ class ApiController {
     AND v.idVisibilidad = 1`;
     try {
       const result = await pool.query(sql, [idUsuario]);
-      res.status(200).json({ status: true, result: result });
+      if(result.length > 0) {
+        res.json(result);
+      }else{
+        res.json([]);
+      }
     } catch (err) {
-      res.status(200).json({ status: false, result: err });
+      res.json([]);
       console.log("ERROR: " + err);
     }
   }
@@ -111,9 +121,13 @@ class ApiController {
     AND a.Archivo_idTipoArchivo = t.idTipo_Archivo`;
     try {
       const result = await pool.query(sql, [idUsuario]);
-      res.status(200).json({ status: true, result: result });
+      if(result.length > 0) {
+        res.json(result);
+      }else{
+        res.json([]);
+      }
     } catch (err) {
-      res.status(200).json({ status: false, result: err });
+      res.json([]);
       console.log("ERROR: " + err);
     }
   }
@@ -125,7 +139,7 @@ class ApiController {
     WHERE idArchivo = ?`;
     try {
       const result = await pool.query(sql, [nombre, idVisibilidad, idArchivo]);
-      res.status(200).json({ status: true, result: result });
+      res.status(200).json({ status: true, result:"Actualizado correctamente" });
     } catch (err) {
       res.status(200).json({ status: false, result: err });
       console.log("ERROR: " + err);
@@ -138,7 +152,7 @@ class ApiController {
     WHERE idArchivo = ?`;
     try {
       const result = await pool.query(sql, [idArchivo]);
-      res.status(200).json({ status: true, result: result });
+      res.status(200).json({ status: true, result: "Eliminado correctamente" });
     } catch (err) {
       res.status(200).json({ status: false, result: err });
       console.log("ERROR: " + err);
@@ -151,7 +165,7 @@ class ApiController {
     VALUES (?, ?, ?, 1)`;
     try {
       const result = await pool.query(sql, [idAmigo1, idAmigo2, fecha_amistad]);
-      res.status(200).json({ status: true, result: result });
+      res.status(200).json({ status: true, result: "Amigo agregado correctamente" });
     } catch (err) {
       res.status(200).json({ status: false, result: err });
       console.log("ERROR: " + err);

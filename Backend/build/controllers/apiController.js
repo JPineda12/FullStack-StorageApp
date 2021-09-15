@@ -51,20 +51,23 @@ var ApiController = /** @class */ (function () {
                 switch (_b.label) {
                     case 0:
                         _a = req.body, user = _a.user, pass = _a.pass;
-                        sql = "SELECT username, correo, nombre, contrasena, Rol_idRol FROM Usuario\n        WHERE username=?\n        AND contrasena=?";
+                        sql = "SELECT username, correo, nombre, Rol_idRol FROM Usuario\n        WHERE username=?\n        AND contrasena=?";
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 3, , 4]);
                         return [4 /*yield*/, database_1.default.query(sql, [user, pass])];
                     case 2:
                         result = _b.sent();
-                        res.status(200).json({ status: true, result: result });
+                        if (result.length > 0) {
+                            res.json(result);
+                        }
+                        else {
+                            res.json([]);
+                        }
                         return [3 /*break*/, 4];
                     case 3:
                         err_1 = _b.sent();
-                        res
-                            .status(200)
-                            .json({ status: false, result: "Error - Consulta incorrecta" });
+                        res.json([]);
                         console.log("ERROR: " + err_1);
                         return [3 /*break*/, 4];
                     case 4: return [2 /*return*/];
@@ -127,7 +130,7 @@ var ApiController = /** @class */ (function () {
                             ])];
                     case 2:
                         result = _b.sent();
-                        res.status(200).json({ status: true, result: result });
+                        res.status(200).json({ status: true, result: "Archivo subido satisfactoriamente" });
                         return [3 /*break*/, 4];
                     case 3:
                         err_3 = _b.sent();
@@ -153,11 +156,16 @@ var ApiController = /** @class */ (function () {
                         return [4 /*yield*/, database_1.default.query(sql, [idUsuario])];
                     case 2:
                         result = _a.sent();
-                        res.status(200).json({ status: true, result: result });
+                        if (result.length > 0) {
+                            res.json(result);
+                        }
+                        else {
+                            res.json([]);
+                        }
                         return [3 /*break*/, 4];
                     case 3:
                         err_4 = _a.sent();
-                        res.status(200).json({ status: false, result: err_4 });
+                        res.json([]);
                         console.log("ERROR: " + err_4);
                         return [3 /*break*/, 4];
                     case 4: return [2 /*return*/];
@@ -179,11 +187,16 @@ var ApiController = /** @class */ (function () {
                         return [4 /*yield*/, database_1.default.query(sql, [idUsuario])];
                     case 2:
                         result = _a.sent();
-                        res.status(200).json({ status: true, result: result });
+                        if (result.length > 0) {
+                            res.json(result);
+                        }
+                        else {
+                            res.json([]);
+                        }
                         return [3 /*break*/, 4];
                     case 3:
                         err_5 = _a.sent();
-                        res.status(200).json({ status: false, result: err_5 });
+                        res.json([]);
                         console.log("ERROR: " + err_5);
                         return [3 /*break*/, 4];
                     case 4: return [2 /*return*/];
@@ -205,11 +218,16 @@ var ApiController = /** @class */ (function () {
                         return [4 /*yield*/, database_1.default.query(sql, [idUsuario])];
                     case 2:
                         result = _a.sent();
-                        res.status(200).json({ status: true, result: result });
+                        if (result.length > 0) {
+                            res.json(result);
+                        }
+                        else {
+                            res.json([]);
+                        }
                         return [3 /*break*/, 4];
                     case 3:
                         err_6 = _a.sent();
-                        res.status(200).json({ status: false, result: err_6 });
+                        res.json([]);
                         console.log("ERROR: " + err_6);
                         return [3 /*break*/, 4];
                     case 4: return [2 /*return*/];
@@ -231,7 +249,7 @@ var ApiController = /** @class */ (function () {
                         return [4 /*yield*/, database_1.default.query(sql, [nombre, idVisibilidad, idArchivo])];
                     case 2:
                         result = _b.sent();
-                        res.status(200).json({ status: true, result: result });
+                        res.status(200).json({ status: true, result: "Actualizado correctamente" });
                         return [3 /*break*/, 4];
                     case 3:
                         err_7 = _b.sent();
@@ -257,7 +275,7 @@ var ApiController = /** @class */ (function () {
                         return [4 /*yield*/, database_1.default.query(sql, [idArchivo])];
                     case 2:
                         result = _a.sent();
-                        res.status(200).json({ status: true, result: result });
+                        res.status(200).json({ status: true, result: "Eliminado correctamente" });
                         return [3 /*break*/, 4];
                     case 3:
                         err_8 = _a.sent();
@@ -283,7 +301,7 @@ var ApiController = /** @class */ (function () {
                         return [4 /*yield*/, database_1.default.query(sql, [idAmigo1, idAmigo2, fecha_amistad])];
                     case 2:
                         result = _b.sent();
-                        res.status(200).json({ status: true, result: result });
+                        res.status(200).json({ status: true, result: "Amigo agregado correctamente" });
                         return [3 /*break*/, 4];
                     case 3:
                         err_9 = _b.sent();

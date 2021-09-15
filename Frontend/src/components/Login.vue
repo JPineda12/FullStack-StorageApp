@@ -7,7 +7,7 @@
       <form class="form" @submit="loginEvent">
         <h3 v-if="txtError" class="msjError">Credenciales Incorrectas</h3>
         <br />
-        <input type="text" v-model="loginValues.username" placeholder="Username" />
+        <input type="text" v-model="loginValues.user" placeholder="Username" />
         <input
           type="password"
           v-model="loginValues.pass"
@@ -45,19 +45,28 @@ export default {
   data() {
     return {
       loginValues: {
-        username: "",
+        user: "",
         pass: "",
       },
-      txtError: null
+      txtError: null,
     };
   },
   methods: {
-    loginEvent(event) {
+    async loginEvent(event) {
       event.preventDefault();
-      console.log(this.loginValues);
-      let result = this.loginValues
-      localStorage.setItem("user-info", JSON.stringify(result))
-      this.$router.push({ name: "Home" });
+      await this.axios
+        .post("/login", this.loginValues)
+        .then((response) => {
+          if (response.data.length > 0) {
+            localStorage.setItem("user-info", JSON.stringify(response.data[0]))
+            this.$router.push({ name: "Home" });
+          }else{
+            this.txtError = "Credenciales Incorrectas"
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     },
     goToRegister() {
       this.$router.push({ name: "Register" });
@@ -93,7 +102,6 @@ form h3 {
 .msjError {
   color: rgba(221, 33, 33, 0.986);
   text-shadow: 0px 0px 10px rgba(255, 0, 0, 0.9);
-
 }
 
 * {
