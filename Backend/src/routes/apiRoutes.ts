@@ -8,7 +8,15 @@ class ApiRoutes {
     }
 
     config(): void {
-        //this.router.post('/login', apiController.loginUser);
+        this.router.post('/login', apiController.login);
+        this.router.post('/register', apiController.register);
+        this.router.post('/addFriend', apiController.addFriend);
+        this.router.post('/uploadFile', apiController.uploadFile);        
+        this.router.get('/getUserFiles/:idUsuario', apiController.getUserFiles);
+        this.router.get('/allUsersPublic/:idUsuario', apiController.allUsersPublicCount);
+        this.router.get('/getFriendsFiles/:idUsuario', apiController.friendsPublicFiles);
+        this.router.put('/updateFile', apiController.updateFile);
+        this.router.put('/deleteFile', apiController.deleteFile);
     }
 
 }
