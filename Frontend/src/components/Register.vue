@@ -1,32 +1,50 @@
 <template>
   <div class="wrapper">
     <div class="container">
-      
       <form class="form" @submit="registerEvent">
-        <div class = "titulo">
+        <div class="titulo">
           <h1 class="header heading">
             <span class="heading--underline">Registrarse</span>
-          </h1>        
+          </h1>
         </div>
-        <br/> <br/> <br/>
+        <br />
+        <br />
+        <br />
+
         <div class="user-info">
-            <div class="user-data">
-                <input type="text" v-model='registerValues.user'  placeholder="Username" />
-                <input type="text" v-model='registerValues.user'  placeholder="Email" />        
-                <input type="password" placeholder="Password" />    
-                <input type="text" v-model='registerValues.user'  placeholder="Confirm Password" />
+          <div class="user-data">
+            <input
+              type="text"
+              v-model="registerValues.user"
+              placeholder="Username"
+            />
+            <input
+              type="text"
+              v-model="registerValues.correo"
+              placeholder="Email"
+            />
+            <input
+              type="password"
+              v-model="registerValues.contrasena"
+              placeholder="Password"
+            />
+            <input
+              type="password"
+              v-model="registerValues.confirmPass"
+              placeholder="Confirm Password"
+            />
+          </div>
+          <div class="img-upload">
+            <div class="imgPreview">
+              <img :src="imagen" />
             </div>
-            <div class="img-upload">
-              <div class = "imgPreview">
-                <img :src="imagen"  >
-              </div>
-              <div class="uploadButton">
-                <label class="custom-file-upload">
-                    <input type="file" @change="handlePhoto" />
-                    Subir Foto
-                </label>            
-              </div>
-              </div>
+            <div class="uploadButton">
+              <label class="custom-file-upload">
+                <input type="file" @change="handlePhoto" accept="image/*" />
+                Subir Foto
+              </label>
+            </div>
+          </div>
         </div>
         <div class="Botones">
           <div>
@@ -49,12 +67,13 @@
       <li></li>
       <li></li>
     </ul>
- 
   </div>
-  
 </template>
 
 <script>
+import Swal from "sweetalert2";
+import bcrypt from "bcryptjs";
+
 export default {
   name: "Register",
   data() {
@@ -62,46 +81,98 @@ export default {
       registerValues: {
         user: "",
         correo: "",
-        userbase64Pic: "",
-        pass: "",
+        contrasena: "",
+        confirmPass: "",
+        idRol: 1,
       },
-      imagen: require('../assets/noimage.png')
-
+      imagen: require("../assets/noimage.png"),
+      imagenBase64: "",
     };
   },
   beforeCreate() {
-      let user = localStorage.getItem("user-info");
-      if(user){
-        this.$router.push({ name: "Home" });
-      } 
-  },  
+    let user = localStorage.getItem("user-info");
+    if (user) {
+      this.$router.push({ name: "Home" });
+    }
+  },
   methods: {
     registerEvent(event) {
       event.preventDefault();
-      console.log(this.registerValues);
+      console.log(this.imagenBase64);
+      console.log(this.imagenBase64.length);
+      if (
+        this.registerValues.user.length > 0 &&
+        this.registerValues.correo.length > 0 &&
+        this.imagenBase64.length > 0 &&
+        this.registerValues.contrasena.length > 0 &&
+        this.registerValues.confirmPass.length > 0
+      ) {
+        const salt = bcrypt.genSaltSync(10)
+        this.registerValues.contrasena = bcrypt.hashSync(this.registerValues.contrasena, salt)
+        console.log("SAVING: ", this.registerValues.contrasena)
+        let user = {
+          user: this.registerValues.user,
+          correo: this.registerValues.correo,
+          nombre: this.registerValues.user,
+          contrasena: this.registerValues.contrasena,
+          imagen_url:
+            "https://i.pinimg.com/originals/2c/68/a2/2c68a2099526c36259b51f707e5e66f7.jpg",
+          idRol: 2,
+        };
+        console.log(user);
+        
+        this.axios
+          .post("/register", user)
+          .then((response) => {
+            if (response.data.status === true) {
+              this.mensajeOk();
+            } else {
+              Swal.fire({
+                icon: "error",
+                title: "ERROR al registrarse",
+                text: "No se pudo completar el registro, intente mas tarde.",
+              });
+            }
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+        this.mensajeOk();
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Campos Incorrectos",
+          text: "Llene todos los campos.",
+        });
+      }
     },
     goBack() {
       this.$router.push({ name: "Login" });
     },
 
-    handlePhoto(event){
+    mensajeOk() {
+      Swal.fire({
+        title: "Usuario registrado satisfactoriamente",
+        icon: "success",
+        confirmButtonColor: "#3085d6",
+      }).then((result) => {
+        console.log(result);
+        this.$router.push({ name: "Login" });
+      });
+    },
+
+    handlePhoto(event) {
       const file = event.target.files[0];
-      this.imagen = URL.createObjectURL(file)
-      console.log(this.registerValues.userbase64Pic);
+      this.imagen = URL.createObjectURL(file);
       this.createBase64Image(file);
     },
-    createBase64Image(fileObject){
-      const reader = new FileReader();
-
+    createBase64Image(fileObject) {
+      var reader = new FileReader();
       reader.onload = (e) => {
-        this.registerValues.userbase64Pic = e.target.result;
-
-      }
-      reader.readAsBinaryString(fileObject);
-
-      
-    }
-    
+        this.imagenBase64 = e.target.result;
+      };
+      reader.readAsDataURL(fileObject);
+    },
   },
 };
 </script>
@@ -123,13 +194,13 @@ export default {
 }
 .heading--underline:hover {
   background-size: 100% 88%;
-    z-index: 2;
+  z-index: 2;
 }
 #register-button {
   margin-bottom: 2px;
 }
 
-.Botones{
+.Botones {
   float: left;
   margin-left: 14%;
 }
@@ -140,36 +211,38 @@ export default {
   padding: 0;
   font-weight: 300;
 }
-.user-info{
-    display:flex;
+.user-info {
+  display: flex;
 }
 
-.user-data{
+.msjError {
+  color: rgba(221, 33, 33, 0.986);
+  text-shadow: 0px 0px 10px rgba(255, 0, 0, 0.9);
+}
+.user-data {
   width: 70%;
 }
 
-.img-upload{
+.img-upload {
   margin-left: -10%;
   width: 20%;
 }
 
-.imgPreview{
+.imgPreview {
   margin-bottom: 10px;
 }
 
-form img{
+form img {
   min-width: 160px;
   min-height: 160px;
   max-width: 160px;
   max-height: 160px;
 }
 
-.uploadButton{
+.uploadButton {
   width: 100%;
   margin-left: 15px;
 }
-
-
 
 body {
   font-family: "Source Sans Pro", sans-serif;
@@ -275,7 +348,7 @@ form button {
 }
 
 input[type="file"] {
-    display: none;
+  display: none;
 }
 
 .custom-file-upload {

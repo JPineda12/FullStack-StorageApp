@@ -3,12 +3,11 @@ import pool from "../database";
 
 class ApiController {
   public async login(req: Request, res: Response) {
-    const { user, pass } = req.body;
-    let sql = `SELECT username, correo, nombre, Rol_idRol FROM Usuario
-        WHERE username=?
-        AND contrasena=?`;
+    const { user } = req.body;
+    let sql = `SELECT idUsuario, username, contrasena, correo, nombre, imagen_url, Rol_idRol FROM Usuario
+        WHERE username=?`;
     try {
-      const result = await pool.query(sql, [user, pass]);
+      const result = await pool.query(sql, [user]);
       if(result.length > 0) {
         res.json(result);
       }else{
@@ -21,9 +20,9 @@ class ApiController {
   }
 
   public async register(req: Request, res: Response) {
-    const { user, correo, nombre, contrasena, idRol } = req.body;
-    let sql = `INSERT INTO Usuario(username, correo, nombre, contrasena, Rol_idRol)
-    VALUES(?, ?, ?, ?, ?)`;
+    const { user, correo, nombre, contrasena, imagen_url, idRol } = req.body;
+    let sql = `INSERT INTO Usuario(username, correo, nombre, contrasena, imagen_url, Rol_idRol)
+    VALUES(?, ?, ?, ?, ?, ?)`;
 
     try {
       const result = await pool.query(sql, [
@@ -31,6 +30,7 @@ class ApiController {
         correo,
         nombre,
         contrasena,
+        imagen_url,
         idRol,
       ]);
       res
@@ -50,6 +50,7 @@ class ApiController {
       idUsuario,
       idVisibilidad,
       idTipoArchivo,
+      base64,
     } = req.body;
     let sql = `INSERT INTO Archivo(nombre, archivo_url, fecha_subida, Archivo_idUsuario, Archivo_idVisibilidad, Archivo_idTipoArchivo)
     VALUES(?, ?, ?, ?, ?, ?)`;
@@ -70,7 +71,7 @@ class ApiController {
   }
   public async getUserFiles(req: Request, res: Response) {
     const { idUsuario } = req.params;
-    let sql = `SELECT idArchivo, nombre, archivo_url, fecha_subida, v.visibilidad, t.tipo
+    let sql = `SELECT idArchivo, nombre, archivo_url, fecha_subida, v.idVisibilidad, v.visibilidad, t.tipo
     from Archivo a, Visibilidad v, Tipo_Archivo t
     WHERE A.Archivo_idUsuario = ?
     AND	A.Archivo_idVisibilidad = v.idVisibilidad
@@ -91,14 +92,27 @@ class ApiController {
   }
   public async allUsersPublicCount(req: Request, res: Response) {
     const { idUsuario } = req.params;
-    let sql = `SELECT u.username, u.nombre, COUNT(a.idArchivo) as cantidad
-    FROM Usuario u, Archivo a, Visibilidad v
-    WHERE u.idUsuario != ?
-    AND u.idUsuario = a.Archivo_idUsuario
-    AND a.Archivo_idVisibilidad = v.idVisibilidad
-    AND v.idVisibilidad = 1`;
+    let sql = `SELECT u.idUsuario, u.username, u.nombre, u.imagen_url, COUNT(a.idArchivo) as cantidad
+FROM Usuario u, Archivo a, Visibilidad v
+WHERE u.idUsuario = a.Archivo_idUsuario
+AND a.Archivo_idVisibilidad = v.idVisibilidad
+AND a.Archivo_idVisibilidad = 1
+AND u.idUsuario <> ${idUsuario}
+AND NOT EXISTS (
+        SELECT d.idAmigo1, d.idAmigo2
+                FROM detalle_amistad d
+                WHERE d.idAmigo2 = u.idUsuario
+                AND d.idAmigo1 = ${idUsuario}
+        )
+GROUP BY u.idUsuario
+UNION 
+SELECT u2.idUsuario, u2.username, u2.nombre, u2.imagen_url, 0
+  FROM Usuario u2
+    WHERE u2.idUsuario <> ${idUsuario}
+     AND not exists  (SELECT * FROM Archivo a2
+              WHERE u2.idUsuario = a2.Archivo_idUsuario);`;
     try {
-      const result = await pool.query(sql, [idUsuario]);
+      const result = await pool.query(sql);
       if(result.length > 0) {
         res.json(result);
       }else{
@@ -112,7 +126,7 @@ class ApiController {
 
   public async friendsPublicFiles(req: Request, res: Response) {
     const { idUsuario } = req.params;
-    let sql = `SELECT u.username, a.nombre as archivo, a.archivo_url, a.fecha_subida, t.tipo
+    let sql = `SELECT u.idUsuario, u.username, u.imagen_url, a.idArchivo, a.nombre as archivo, a.archivo_url, a.fecha_subida, t.tipo
     FROM Usuario u, Detalle_Amistad d, Archivo a, tipo_archivo t
     WHERE d.idAmigo1 = ?
     AND d.idAmigo2 = u.idUsuario
@@ -146,7 +160,7 @@ class ApiController {
     }
   }
   public async deleteFile(req: Request, res: Response) {
-    const { idArchivo} = req.body;
+    const { idArchivo} = req.params;
     let sql = `UPDATE Archivo
     SET Archivo_idVisibilidad = 3
     WHERE idArchivo = ?`;

@@ -2,34 +2,26 @@
   <div class="modal-backdrop">
     <div class="modal">
       <header class="modal-header">
-        <h2>Agregar Amigos</h2>
+        <h2>Archivos Publicos De Amigos</h2>
         <hr />
-        <input
-          class="searchBar"
-          placeholder="Busca un Usuario"
-          type="text"
-          v-model="busqueda"
-        />
-        <button class="btn-green" id="searchButton" @click="searchUser()">
-          Buscar
-        </button>
       </header>
 
       <section class="modal-body">
         <div class="friends-list">
           <div
             id="user-info"
-            v-for="user of Users"
-            :key="user.idUsuario"
+            v-for="file of Files"
+            :key="file.idArchivo"
             class="card-top"
           >
             <div class="card-image">
-              <img :src="user.imagen_url" />
+              <img :src="file.archivo_url" />
             </div>
             <div class="card-text">
-              <h4>{{ user.nombre }}</h4>
-              <p>Archivos Publicos: {{ user.cantidad }}</p>
-              <button class="btn-gr" @click="addFriend(user)">
+              <h4>{{ file.archivo }}</h4>
+              <p>Propietario: {{ file.username }}</p>
+              <p>{{ file.fecha_subida }}</p>
+              <button class="btn-gr" @click="verFile(file)">
                 <svg
                   class="w-6 h-6"
                   fill="none"
@@ -41,7 +33,13 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  ></path>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                   ></path>
                 </svg>
               </button>
@@ -61,89 +59,35 @@
 import Swal from "sweetalert2";
 
 export default {
-  name: "AddFriends",
+  name: "SeeFiles",
   emits: ["close"],
-  beforeMount() {
-    this.getUsers();
-  },
   props: {
     idUser: Number,
+    Files: Array,
   },
   data() {
-    return {
-      busqueda: "",
-      imagen: "",
-      Users: [],
-    };
+    return {};
   },
   computed: {
     getIdUsuario() {
       return this.idUser;
     },
+    getFiles() {
+      return this.Files;
+    },
   },
   methods: {
-    getUsers() {
-      this.axios
-        .get(`/allUsersPublic/${this.getIdUsuario}`)
-        .then((response) => {
-          for (var i = 0; i < response.data.length; i++) {
-            let aux = {
-              idUsuario: response.data[i].idUsuario,
-              nombre: response.data[i].nombre,
-              imagen_url: response.data[i].imagen_url,
-              cantidad: response.data[i].cantidad,
-            };
-            this.Users.push(aux);
-          }
-        })
-        .catch((error) => {
-          console.log(error);
+    verFile(file) {
+      console.log(file.tipo);
+      if (file.tipo === "Imagen") {
+        Swal.fire({
+          width: 530,
+          imageUrl: file.archivo_url,
+          imageHeight: 450,
+          imageWidth: 500,
         });
+      }
     },
-    addFriend(friend) {
-      console.log(friend);
-      Swal.fire({
-        title: "Desea agregar como amigo a " + friend.nombre + "?",
-        icon: "info",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Si, agregar!",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          var today = new Date();
-          var date =
-            today.getFullYear() +
-            "-" +
-            (today.getMonth() + 1) +
-            "-" +
-            today.getDate();
-          let post = {
-            idAmigo1: this.getIdUsuario,
-            idAmigo2: friend.idUsuario,
-            fecha_amistad: date,
-          };
-          this.axios
-            .post("/addFriend", post)
-            .then((response) => {
-              if (response.data.status === true) {
-                Swal.fire("Hecho!", "Se agrego un nuevo amigo.", "success");
-              } else {
-                Swal.fire("Error!", "Error con la solicitud", "error");
-              }
-            })
-            .catch((error) => {
-              Swal.fire(
-                "Error!",
-                "Error al comunicarse con el backend",
-                "error"
-              );
-              console.log(error);
-            });
-        }
-      });
-    },
-    searchUser() {},
     close() {
       this.$emit("close");
     },

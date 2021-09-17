@@ -40,6 +40,7 @@
 </template>
 
 <script>
+import bcrypt from "bcryptjs";
 export default {
   name: "Login",
   data() {
@@ -58,10 +59,22 @@ export default {
         .post("/login", this.loginValues)
         .then((response) => {
           if (response.data.length > 0) {
-            localStorage.setItem("user-info", JSON.stringify(response.data[0]))
-            this.$router.push({ name: "Home" });
-          }else{
-            this.txtError = "Credenciales Incorrectas"
+            bcrypt.compare(this.loginValues.pass, response.data[0].contrasena, function (err, result) {
+              if (err) {
+                throw err;
+              }
+              if(result === true){
+                localStorage.setItem("user-info", JSON.stringify(response.data[0]));
+                this.$router.push({ name: "Home" });                
+              }else{
+                this.txtError = "Credenciales Incorrectas";
+              }
+            }.bind(this));
+            
+            this.loginValues.pass = "";
+          } else {
+            this.txtError = "Credenciales Incorrectas";
+            this.loginValues.pass = "";
           }
         })
         .catch((error) => {

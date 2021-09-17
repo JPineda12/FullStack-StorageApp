@@ -16,9 +16,9 @@
       <div class="user-menu">
         <div class="user-info">
           <div class="imgPreview">
-            <img class="img" :src="imagen" />
+            <img class="img" :src="user ? user.imagen_url : ''" />
           </div>
-          <h3>{{ nombre }}</h3>
+          <h3>{{ user ? user.nombre : "" }}</h3>
           <div class="Botones">
             <div>
               <button type="submit" id="subir-button" @click="showUpload()">
@@ -59,7 +59,7 @@
               </button>
             </div>
             <div>
-              <button id="see-button">
+              <button id="see-button" @click="showFiles()">
                 <svg
                   class="w-6 h-6"
                   fill="none"
@@ -103,8 +103,12 @@
         <div class="public-files">
           <h1>Archivos Publicos</h1>
           <div class="file-list">
-            <div v-for="item of publicFiles" class="file" :key="item.id">
-              <img class="img" @click="viewFile(item)" :src="item.imagen" />
+            <div v-for="item of publicFiles" class="file" :key="item.idArchivo">
+              <img
+                class="img"
+                @click="viewFile(item)"
+                :src="item.imagen_arch"
+              />
 
               <h4>
                 {{ item.nombre }}
@@ -146,8 +150,16 @@
         <div class="private-files">
           <h1>Archivos Privados</h1>
           <div class="file-list">
-            <div v-for="item of privateFiles" class="file" :key="item.id">
-              <img class="img" @click="viewFile(item)" :src="item.imagen" />
+            <div
+              v-for="item of privateFiles"
+              class="file"
+              :key="item.idArchivo"
+            >
+              <img
+                class="img"
+                @click="viewFile(item)"
+                :src="item.imagen_arch"
+              />
               <h4>
                 {{ item.nombre }}
                 <svg
@@ -191,15 +203,34 @@
       v-show="isUploadVisible"
       @close="closeUpload()"
       v-on:newFile="addToArray"
+      :idUser="user ? user.idUsuario : -1"
     >
     </UploadFile>
     <EditFile
-      :archivo="currentFile"
+      :nombre="currentFile[0].nombre"
+      :idArchivo="currentFile[0].idArchivo"
+      :imagen_arch="currentFile[0].imagen_arch"
+      :fecha_subida="currentFile[0].fecha_subida"
+      :tipo="currentFile[0].tipo"
+      :archivo_url="currentFile[0].archivo_url"
+      :visibilidad="currentFile[0].visibilidad"
+      :idVisibilidad="currentFile[0].idVisibilidad"
+      :username="user ? user.username : ''"
       v-show="isEditVisible"
       @close="closeEdit()"
       v-on:editedFile="editArray"
     />
-    <AddFriends v-show="isFriendsVisible" @close="closeFriends()" />
+    <AddFriends
+      v-show="isFriendsVisible"
+      @close="closeFriends()"
+      :idUser="user ? user.idUsuario : -1"
+    />
+    <SeeFiles
+      v-show="isSeeFilesVisible"
+      :Files="FriendsFiles"
+      @close="closeSeeFiles()"
+      :idUser="user ? user.idUsuario : -1"
+    />
   </div>
 </template>
 
@@ -207,99 +238,156 @@
 import AddFriends from "./AddFriends";
 import UploadFile from "./UploadFile";
 import EditFile from "./EditFile";
+import SeeFiles from "./SeeFiles";
 import Swal from "sweetalert2";
+import bcrypt from "bcryptjs";
 
 export default {
   name: "Home",
   components: {
     UploadFile,
     EditFile,
+    SeeFiles,
     AddFriends,
   },
   data() {
     return {
-      nombre: "",
+      user: {
+        idUsuario: "",
+        imagen_url: "",
+        nombre: "",
+        correo: "",
+        idRol: "",
+      },
       isUploadVisible: false,
       isEditVisible: false,
       isFriendsVisible: false,
+      isSeeFilesVisible: false,
       publicFiles: [],
       privateFiles: [],
-      currentFile: Object,
-      imagen:
-        "https://empresas.blogthinkbig.com/wp-content/uploads/2019/11/Imagen3-245003649.jpg?fit=960%2C720",
+      currentFile: [1],
+      FriendsFiles: [],
+      pdfPreview: require("../assets/pdficon.png"),
     };
   },
   beforeMount() {
-    let user = localStorage.getItem("user-info");
-    if (!user) {
+    let us = localStorage.getItem("user-info");
+    if (!us) {
       this.$router.push({ name: "Login" });
     }
-    this.nombre = JSON.parse(user).username;
-    this.getPublicFiles();
-    this.getPrivateFiles();
+    try {
+      this.user = JSON.parse(us);
+      //console.log(this.user);
+      this.getFiles();
+    } catch (e) {
+      console.log("ERROR: ", e);
+    }
   },
   methods: {
-    getPublicFiles() {
-      for (let i = 0; i < 5; i++) {
-        let file = {
-          id: i,
-          nombre: "Lmao",
-          imagen: this.imagen,
-          visibilidad: "Publico",
-        };
-        this.publicFiles.push(file);
-      }
-    },
-    getPrivateFiles() {
-      for (let i = 0; i < 5; i++) {
-        let file = {
-          id: i,
-          nombre: "Lmao",
-          imagen: this.imagen,
-          visibilidad: "Privado",
-        };
-        this.privateFiles.push(file);
-      }
-    },
+    getFiles() {
+      //REQUEST FOR ALL FILES OF THIS USER.
+      if (this.user) {
+        this.axios
+          .get(`/getUserFiles/${this.user.idUsuario}`)
+          .then((response) => {
+            for (let i = 0; i < response.data.length; i++) {
+              let img;
+              if (response.data[i].tipo == "Imagen") {
+                img = response.data[i].archivo_url;
+              } else {
+                img = this.pdfPreview; //<-- imagen por defecto para un pdf.
+              }
+              let auxArch = {
+                idArchivo: response.data[i].idArchivo,
+                archivo_url: response.data[i].archivo_url,
+                fecha_subida: response.data[i].fecha_subida,
+                nombre: response.data[i].nombre,
+                tipo: response.data[i].tipo,
+                idVisibilidad: response.data[i].idVisibilidad,
+                visibilidad: response.data[i].visibilidad,
+                imagen_arch: img,
+              };
 
-    addToArray(newF) {
-      if (newF.visible) {
-        this.publicFiles.unshift(newF);
-      } else {
-        this.privateFiles.unshift(newF);
+              if (auxArch.visibilidad === "Publico") {
+                this.publicFiles.push(auxArch);
+              } else if (auxArch.visibilidad === "Privado") {
+                this.privateFiles.push(auxArch);
+              }
+            }
+          })
+          .catch((error) => {
+            console.log(error);
+          });
       }
+    },
+    addToArray() {
+      this.publicFiles = [];
+      this.privateFiles = [];
+      this.getFiles();
     },
 
     editArray(editedF) {
-      if (editedF[1] != null || editedF[1] != undefined) {
-        if (editedF[0].visibilidad == "Publico") {
-          //Buscar en el array de archivos publicos
-          const index = this.publicFiles.indexOf(editedF[0]);
-          if (index > -1) {
-            //Ver la visibilidad del archivo editado
-            if (editedF[1].visibilidad == "Publico") {
-              this.publicFiles[index] = editedF[1];
-            } else {
-              this.publicFiles.splice(index, 1);
-              this.privateFiles.unshift(editedF[1]);
-            }
+      if (editedF.visibilidad === "Publico") {
+        var flag = false;
+        var elementPos = this.publicFiles
+          .map(function (x) {
+            return x.idArchivo;
+          })
+          .indexOf(editedF.idArchivo);
+        if (elementPos > -1) {
+          flag = true;
+          this.publicFiles[elementPos] = editedF;
+        }
+        if (!flag) {
+          elementPos = this.privateFiles
+            .map(function (x) {
+              return x.idArchivo;
+            })
+            .indexOf(editedF.idArchivo);
+          if (elementPos > -1) {
+            flag = true;
+            this.privateFiles.splice(elementPos, 1);
+            this.publicFiles.unshift(editedF);
           }
-        } else {
-          const index = this.privateFiles.indexOf(editedF[0]);
-          if (index > -1) {
-            if (editedF[1].visiblidad == "Privado") {
-              this.privateFiles[index] = editedF[1];
-            } else {
-              this.privateFiles.splice(index, 1);
-              this.publicFiles.unshift(editedF[1]);
-            }
+        }
+      } else {
+        flag = false;
+        elementPos = this.privateFiles
+          .map(function (x) {
+            return x.idArchivo;
+          })
+          .indexOf(editedF.idArchivo);
+        if (elementPos > -1) {
+          flag = true;
+          this.privateFiles[elementPos] = editedF;
+        }
+        if (!flag) {
+          elementPos = this.publicFiles
+            .map(function (x) {
+              return x.idArchivo;
+            })
+            .indexOf(editedF.idArchivo);
+          if (elementPos > -1) {
+            flag = true;
+            this.publicFiles.splice(elementPos, 1);
+            this.privateFiles.unshift(editedF);
           }
         }
       }
     },
 
     editFile(archivo) {
-      this.currentFile = archivo;
+      let cF = {
+        nombre: archivo.nombre,
+        idArchivo: archivo.idArchivo,
+        fecha_subida: archivo.fecha_subida,
+        tipo: archivo.tipo,
+        archivo_url: archivo.archivo_url,
+        visibilidad: archivo.visibilidad,
+        imagen_arch: archivo.imagen_arch,
+        idVisibilidad: archivo.idVisibilidad,
+      };
+      this.currentFile[0] = cF;
       this.isEditVisible = true;
     },
 
@@ -312,22 +400,64 @@ export default {
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
         cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, delete it!",
+        confirmButtonText: "Si, eliminar!",
       }).then((result) => {
         if (result.isConfirmed) {
-          Swal.fire("Deleted!", "Your file has been deleted.", "success");
-          console.log("Password: ", result);
-          if (archivo.visibilidad === "Publico") {
-            const index = this.publicFiles.indexOf(archivo);
-            if (index > -1) {
-              this.publicFiles.splice(index, 1);
-            }
-          } else {
-            const index = this.privateFiles.indexOf(archivo);
-            if (index > -1) {
-              this.privateFiles.splice(index, 1);
-            }
-          }
+          let us = {
+            user: this.user.username,
+          };
+          this.axios
+            .post("/login", us)
+            .then((response) => {
+              if (response.data.length > 0) {
+                bcrypt.compare(
+                  result.value,
+                  response.data[0].contrasena,
+                  function (err, resultx) {
+                    if (err) {
+                      throw err;
+                    }
+                    if (resultx === true) {
+                      this.axios
+                        .put(`/deleteFile/${archivo.idArchivo}`)
+                        .then((response) => {
+                          if (response.data.status === true) {
+                            Swal.fire(
+                              "Eliminado!",
+                              "El archivo ha sido eliminado satisfactoriamente",
+                              "success"
+                            );
+                            if (archivo.visibilidad === "Publico") {
+                              const index = this.publicFiles.indexOf(archivo);
+                              if (index > -1) {
+                                this.publicFiles.splice(index, 1);
+                              }
+                            } else {
+                              const index = this.privateFiles.indexOf(archivo);
+                              if (index > -1) {
+                                this.privateFiles.splice(index, 1);
+                              }
+                            }
+                          } else {
+                            Swal.fire(
+                              "Error!",
+                              "No se pudo hacer la eliminacion en el servidor",
+                              "error"
+                            );
+                          }
+                        });
+                    } else {
+                      Swal.fire("Error!", "Contraseña Incorrecta", "error");
+                    }
+                  }.bind(this)
+                );
+              } else {
+                Swal.fire("Error!", "Contraseña Incorrecta", "error");
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+            });
         }
       });
     },
@@ -341,9 +471,37 @@ export default {
     closeEdit() {
       this.isEditVisible = false;
     },
+    closeSeeFiles() {
+      this.isSeeFilesVisible = false;
+    },
 
     showFriends() {
       this.isFriendsVisible = true;
+    },
+
+    showFiles() {
+      this.FriendsFiles = [];
+      this.axios
+        .get(`/getFriendsFiles/${this.user.idUsuario}`)
+        .then((response) => {
+          for (var i = 0; i < response.data.length; i++) {
+            let aux = {
+              idUsuario: response.data[i].idUsuario,
+              username: response.data[i].username,
+              imagen_url: response.data[i].imagen_url,
+              idArchivo: response.data[i].idArchivo,
+              archivo: response.data[i].archivo,
+              archivo_url: response.data[i].archivo_url,
+              fecha_subida: response.data[i].fecha_subida,
+              tipo: response.data[i].tipo,
+            };
+            this.FriendsFiles.push(aux);
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+      this.isSeeFilesVisible = true;
     },
 
     closeFriends() {
@@ -483,7 +641,6 @@ svg:hover {
   max-width: 80px;
   max-height: 80px;
   margin-bottom: -25px;
-  box-shadow: 1px 1px;
 }
 img:hover {
   -webkit-transform: scale(1.3);

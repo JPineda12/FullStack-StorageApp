@@ -8,7 +8,7 @@
           <div class="imgPreview">
             <img :src="getImagen" />
           </div>
-          <h4 class="h4-file">{{ archivo.nombre }}</h4>
+          <h4 class="h4-file">{{ nombre }}</h4>
         </div>
         <hr />
         <div class="file-info">
@@ -18,42 +18,41 @@
               id="input-nombre"
               type="text"
               v-model="nombreFinal"
-              :placeholder="archivo.nombre"
+              :placeholder="getNombre"
             />
           </div>
           <h4 class="vis">Visibilidad</h4>
           <div class="labels">
-            <label class="containerLab"
+            <label for="radio-yes" class="containerLab"
               >Publico
               <input
                 type="radio"
                 :checked="getVisibilidad == 'Publico'"
                 id="pub"
                 name="radio"
+                value="Publico"
+                v-model="selectedVisibilidad"
               />
               <span class="checkmark"></span>
             </label>
-            <label class="containerLab"
+            <label for="radio-no" class="containerLab"
               >Privado
               <input
                 type="radio"
                 name="radio"
+                value="Privado"
                 id="priv"
                 :checked="getVisibilidad == 'Privado'"
+                v-model="selectedVisibilidad"
               />
               <span class="checkmark"></span>
             </label>
           </div>
         </div>
       </section>
-        <h4>Confirmar Contraseña</h4>
-        <input
-          id="input-pass"
-          type="password"
-          v-model="pass"
-        />
+      <h4>Confirmar Contraseña</h4>
+      <input id="input-pass" type="password" v-model="pass" />
       <footer class="modal-footer">
-
         <button type="button" class="btn-green" @click="editar">
           Editar Archivo
         </button>
@@ -65,61 +64,155 @@
 
 <script>
 import Swal from "sweetalert2";
+import bcrypt from "bcryptjs";
 
 export default {
   name: "UploadFile",
   emits: ["close", "editedFile"],
   props: {
-    archivo: Object,
+    idArchivo: Number,
+    imagen_arch: String,
+    fecha_subida: String,
+    tipo: String,
+    archivo_url: String,
+    idVisibilidad: Number,
+    visibilidad: String,
+    nombre: String,
+    username: String,
   },
   data() {
     return {
       nombreFinal: "",
       editedArchivo: [],
       pass: "",
+      selectedVisibilidad: "",
+      imagen: this.imagen_arch,
     };
   },
   computed: {
-    getVisibilidad: function () {
-      return this.archivo.visibilidad;
+    getId() {
+      return this.idArchivo;
     },
-    getImagen: function () {
-      return this.archivo.imagen;
+    getNombre() {
+      return this.nombre;
     },
-    getNombre: function () {
-      return this.archivo.nombre;
+    getImagen() {
+      return this.imagen_arch;
+    },
+    getFechaSubida() {
+      return this.fecha_subida;
+    },
+    getTipo() {
+      return this.tipo;
+    },
+    getArchivoUrl() {
+      return this.archivo_url;
+    },
+    getVisibilidad() {
+      return this.visibilidad;
+    },
+    getidVisibilidad() {
+      return this.idVisibilidad;
+    },
+    getUsername() {
+      return this.username;
     },
   },
   methods: {
     editar() {
-      let auxVis = "Publico";
-      if (document.getElementById("priv").checked) {
-        auxVis = "Privado";
+      if (this.pass !== "") {
+        let user = {
+          user: this.getUsername,
+          pass: this.pass,
+        };
+        this.axios
+          .post("/login", user)
+          .then((response) => {
+            if (response.data.length > 0) {
+              bcrypt.compare(
+                this.pass,
+                response.data[0].contrasena,
+                function (err, result) {
+                  if (err) {
+                    throw err;
+                  }
+                  if (result === true) {
+                    if (this.selectedVisibilidad === "") {
+                      this.selectedVisibilidad = this.getVisibilidad;
+                    }
+                    if (this.nombreFinal === "") {
+                      this.nombreFinal = this.getNombre;
+                    }
+                    let idVis;
+                    if (this.selectedVisibilidad === "Publico") {
+                      idVis = 1;
+                    } else {
+                      idVis = 2;
+                    }
+
+                    let auxEditedArchivo = {
+                      idArchivo: this.getId,
+                      imagen_arch: this.getImagen,
+                      fecha_subida: this.getFechaSubida,
+                      tipo: this.getTipo,
+                      archivo_url: this.getArchivoUrl,
+                      idVisibilidad: idVis,
+                      visibilidad: this.selectedVisibilidad,
+                      nombre: this.nombreFinal,
+                    };
+                    console.log(auxEditedArchivo.idVisibilidad);
+                    this.axios
+                      .put("/updateFile", auxEditedArchivo)
+                      .then((response) => {
+                        if (response.data.status === true) {
+                          Swal.fire("Archivo Editado!", "", "success");
+                          this.$emit("editedFile", auxEditedArchivo);
+                        } else {
+                          Swal.fire(
+                            "Ocurrio un error al comunicarse con el servidor para editar!",
+                            "",
+                            "error"
+                          );
+                        }
+                      })
+                      .catch((error) => {
+                        console.log(error);
+                      });
+
+                    this.$emit("close");
+                    this.nombreFinal = "";
+                    this.selectedVisibilidad = this.getVisibilidad;
+                    this.pass = "";
+                  } else {
+                    Swal.fire("Contraseña Incorrecta", "", "error");
+                  }
+                }.bind(this)
+              );
+            } else {
+              Swal.fire("Contraseña Incorrecta", "", "error");
+            }
+          })
+          .catch((error) => {
+            Swal.fire(
+              "Ocurrio un error al comunicarse con el servidor para confirmar la contraseña!",
+              "",
+              "error"
+            );
+            console.log(error);
+          });
+      } else {
+        Swal.fire(
+          "Ingrese la contraseña para confirmar la edicion!",
+          "",
+          "error"
+        );
       }
-      let auxNombre = document.getElementById("input-nombre").value;
-      if (auxNombre == "") {
-        auxNombre = this.archivo.nombre;
-      }
-      let auxEditedArchivo = {
-        id: this.archivo.id,
-        imagen: this.archivo.imagen,
-        visibilidad: auxVis,
-        nombre: auxNombre,
-      };
-      this.editedArchivo[1] = auxEditedArchivo;
-      Swal.fire("Archivo Editado!", "", "success");
-      this.close();
-      this.nombreFinal = "";
     },
     close() {
-      console.log(this.editedArchivo);
-      this.editedArchivo[0] = this.archivo;
-      if (this.editedArchivo != null) {
-        this.$emit("editedFile", this.editedArchivo);
-      } else {
-        this.$emit("editedFile", this.archivo);
-      }
       this.$emit("close");
+      this.nombreFinal = "";
+      this.selectedVisibilidad = this.getVisibilidad;
+      this.pass = "";
     },
   },
 };
@@ -183,7 +276,7 @@ input[type="file"] {
   transition-duration: 0.25s;
 }
 
-#input-pass{
+#input-pass {
   margin-bottom: 4px;
 }
 

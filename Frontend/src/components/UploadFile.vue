@@ -16,25 +16,24 @@
             </label>
           </div>
         </div>
-        <hr>
+        <hr />
         <div class="file-info">
           <div class="nombre">
             <h4>Nombre del archivo</h4>
-          <input
-            type="text"
-            v-model="nombreFinal"
-          />
+            <input type="text" v-model="nombreFinal" />
           </div>
-            <h4 class="vis">Visibilidad</h4>
+          <h4 class="vis">Visibilidad</h4>
           <div class="labels">
             <label class="containerLab"
               >Publico
-              <input type="radio" id="pub" name="radio" />
+              <input type="radio" id="pub" name="radio" value="Publico" :checked="getVisibilidad == 'Publico'"
+                v-model="selectedVisibilidad" />
               <span class="checkmark"></span>
             </label>
             <label class="containerLab"
               >Privado
-              <input type="radio" id="priv" name="radio" />
+              <input type="radio" id="priv" name="radio" value="Privado" :checked="visible == 'Privado'"
+                v-model="selectedVisibilidad"/>
               <span class="checkmark"></span>
             </label>
           </div>
@@ -42,10 +41,10 @@
       </section>
 
       <footer class="modal-footer">
-        <button type="button" class="btn-green" @click="subir()">Subir Archivo!</button>
-        <button type="button" class="btn-green" @click="close">
-          Cerrar
+        <button type="button" class="btn-green" @click="subir()">
+          Subir Archivo!
         </button>
+        <button type="button" class="btn-green" @click="close">Cerrar</button>
       </footer>
     </div>
   </div>
@@ -56,42 +55,114 @@ import Swal from "sweetalert2";
 export default {
   name: "UploadFile",
   emits: ["close", "newFile"],
-
+  props: {
+    idUser: Number,
+  },
   data() {
     return {
       imagen: require("../assets/freeFile.jpg"),
       nombreFile: "",
-      nombreFinal: '',
+      nombreFinal: "",
+      imagenBase64: "",
+      selectedVisibilidad: "",
+
+      visible: true,
+      urlPDF: require("../assets/pdficon.png")
     };
+  },
+  computed: {
+    getIdUsuario() {
+      return this.idUser;
+    },
+      getVisibilidad() {
+      return "Publico";
+    },
   },
   methods: {
     handlePhoto(event) {
-
       const file = event.target.files[0];
+      let extension = file.name.split(".", 2)[1]
+      if( extension === "pdf"){
+        this.imagen = this.urlPDF
+        this.imagenBase64 = "";
+      }else if(extension === "png" || extension === "jpg" || extension === "jpeg"){
       this.imagen = URL.createObjectURL(file);
       this.createBase64Image(file);
-      this.nombreFile = file.name
+      this.nombreFile = file.name;
+      }else{
+         Swal.fire(
+              "Error - Tipo de archivo no admitido",
+              "",
+              "error"
+            );
+      }
     },
     createBase64Image(fileObject) {
-      const reader = new FileReader();
-
-      /*reader.onload = (e) => {
-        //this.registerValues.userbase64Pic = e.target.result;
-      };*/
-      reader.readAsBinaryString(fileObject);
+      var reader = new FileReader();
+      reader.onload = (e) => {
+        this.imagenBase64 = e.target.result;
+      };
+      reader.readAsDataURL(fileObject);
     },
-    subir(){
-      Swal.fire("Archivo Subido!", "", "success");
-      this.close();      
+    subir() {
+      let idVisibilidad = 1;
+      if (this.selectedVisibilidad === "Privado") {
+        idVisibilidad = 2;
+      }
+      let idTipo = -1; //imagen = 1 .. pdf = 2
+      let extension = this.nombreFile.split(".", 2)[1];
+      if (extension === "pdf") {
+        idTipo = 2;
+        this.imagen = this.urlPDF
+      } else if (
+        extension === "png" ||
+        extension === "jpg" ||
+        extension === "jpeg"
+      ) {
+        this.imagen = require("../assets/Shika.png");
+        idTipo = 1;
+      }
+      var today = new Date();
+      var date =
+        today.getFullYear() +
+        "-" +
+        (today.getMonth() + 1) +
+        "-" +
+        today.getDate();
+      let file = {
+        nombre: this.nombreFinal,
+        archivo_url: this.imagen,
+        fecha_subida: date,
+        idUsuario: this.getIdUsuario,
+        idVisibilidad: idVisibilidad,
+        idTipoArchivo: idTipo,
+        base64: this.imagenBase64
+      };
+      this.axios
+        .post("/uploadFile", file)
+        .then((response) => {
+          if (response.data.status === true) {
+            Swal.fire("Archivo Subido!", "", "success");
+            this.$emit("newFile");
+            this.$emit("close");
+          } else {
+            Swal.fire(
+              "Ocurrio un error al insertar en la base de datos",
+              "",
+              "error"
+            );
+          }
+        })
+        .catch((error) => {
+          Swal.fire(
+            "Ocurrio un error al comunicarse con el servidor",
+            "",
+            "error"
+          );
+          console.log(error);
+        });
     },
     close() {
-        let file = {
-          id: 1,
-          nombre: "Lmao",
-          imagen: this.imagen,
-          visible: true
-        };
-      this.$emit('newFile', file)
       this.$emit("close");
     },
   },
@@ -218,35 +289,35 @@ img {
   border-radius: 2px;
 }
 
-.file-info{
+.file-info {
   display: table;
   margin-top: 10px;
   width: 100%;
 }
 
-.file-info .nombre{
+.file-info .nombre {
   display: inline-table;
   position: static;
   float: left;
   margin-left: 10px;
 }
-h4{
-  margin-bottom:-1px;
+h4 {
+  margin-bottom: -1px;
 }
 
-.h4-file{
+.h4-file {
   margin-top: -4px;
   margin-bottom: 5px;
 }
 
-.vis{
+.vis {
   margin-top: -5px;
 }
 
-.labels{
+.labels {
   display: inline-table;
   position: static;
-  margin-top:10px;
+  margin-top: 10px;
   width: 120px;
   border: 1px solid;
 }
@@ -263,6 +334,4 @@ h4{
   -ms-user-select: none;
   user-select: none;
 }
-
-
 </style>

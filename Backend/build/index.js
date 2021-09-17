@@ -9,6 +9,7 @@ var morgan_1 = __importDefault(require("morgan"));
 var cors_1 = __importDefault(require("cors"));
 var indexRoutes_1 = __importDefault(require("./routes/indexRoutes"));
 var apiRoutes_1 = __importDefault(require("./routes/apiRoutes"));
+var s3Routes_1 = __importDefault(require("./routes/s3Routes"));
 var Server = /** @class */ (function () {
     function Server() {
         this.app = express_1.default();
@@ -19,12 +20,13 @@ var Server = /** @class */ (function () {
         this.app.set('port', process.env.PORT || 3000);
         this.app.use(morgan_1.default('dev'));
         this.app.use(cors_1.default());
-        this.app.use(express_1.default.json());
-        this.app.use(express_1.default.urlencoded({ extended: false }));
+        this.app.use(express_1.default.json({ limit: '50mb' }));
+        this.app.use(express_1.default.urlencoded({ limit: '50mb', extended: false }));
     };
     Server.prototype.routes = function () {
         this.app.use('/', indexRoutes_1.default);
         this.app.use('/api', apiRoutes_1.default);
+        this.app.use('/aws', s3Routes_1.default);
     };
     Server.prototype.start = function () {
         var _this = this;

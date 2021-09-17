@@ -46,18 +46,18 @@ var ApiController = /** @class */ (function () {
     }
     ApiController.prototype.login = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, user, pass, sql, result, err_1;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var user, sql, result, err_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
                     case 0:
-                        _a = req.body, user = _a.user, pass = _a.pass;
-                        sql = "SELECT username, correo, nombre, Rol_idRol FROM Usuario\n        WHERE username=?\n        AND contrasena=?";
-                        _b.label = 1;
+                        user = req.body.user;
+                        sql = "SELECT idUsuario, username, contrasena, correo, nombre, imagen_url, Rol_idRol FROM Usuario\n        WHERE username=?";
+                        _a.label = 1;
                     case 1:
-                        _b.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, database_1.default.query(sql, [user, pass])];
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, database_1.default.query(sql, [user])];
                     case 2:
-                        result = _b.sent();
+                        result = _a.sent();
                         if (result.length > 0) {
                             res.json(result);
                         }
@@ -66,7 +66,7 @@ var ApiController = /** @class */ (function () {
                         }
                         return [3 /*break*/, 4];
                     case 3:
-                        err_1 = _b.sent();
+                        err_1 = _a.sent();
                         res.json([]);
                         console.log("ERROR: " + err_1);
                         return [3 /*break*/, 4];
@@ -77,12 +77,12 @@ var ApiController = /** @class */ (function () {
     };
     ApiController.prototype.register = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, user, correo, nombre, contrasena, idRol, sql, result, err_2;
+            var _a, user, correo, nombre, contrasena, imagen_url, idRol, sql, result, err_2;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        _a = req.body, user = _a.user, correo = _a.correo, nombre = _a.nombre, contrasena = _a.contrasena, idRol = _a.idRol;
-                        sql = "INSERT INTO Usuario(username, correo, nombre, contrasena, Rol_idRol)\n    VALUES(?, ?, ?, ?, ?)";
+                        _a = req.body, user = _a.user, correo = _a.correo, nombre = _a.nombre, contrasena = _a.contrasena, imagen_url = _a.imagen_url, idRol = _a.idRol;
+                        sql = "INSERT INTO Usuario(username, correo, nombre, contrasena, imagen_url, Rol_idRol)\n    VALUES(?, ?, ?, ?, ?, ?)";
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 3, , 4]);
@@ -91,6 +91,7 @@ var ApiController = /** @class */ (function () {
                                 correo,
                                 nombre,
                                 contrasena,
+                                imagen_url,
                                 idRol,
                             ])];
                     case 2:
@@ -111,11 +112,11 @@ var ApiController = /** @class */ (function () {
     };
     ApiController.prototype.uploadFile = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, nombre, archivo_url, fecha_subida, idUsuario, idVisibilidad, idTipoArchivo, sql, result, err_3;
+            var _a, nombre, archivo_url, fecha_subida, idUsuario, idVisibilidad, idTipoArchivo, base64, sql, result, err_3;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        _a = req.body, nombre = _a.nombre, archivo_url = _a.archivo_url, fecha_subida = _a.fecha_subida, idUsuario = _a.idUsuario, idVisibilidad = _a.idVisibilidad, idTipoArchivo = _a.idTipoArchivo;
+                        _a = req.body, nombre = _a.nombre, archivo_url = _a.archivo_url, fecha_subida = _a.fecha_subida, idUsuario = _a.idUsuario, idVisibilidad = _a.idVisibilidad, idTipoArchivo = _a.idTipoArchivo, base64 = _a.base64;
                         sql = "INSERT INTO Archivo(nombre, archivo_url, fecha_subida, Archivo_idUsuario, Archivo_idVisibilidad, Archivo_idTipoArchivo)\n    VALUES(?, ?, ?, ?, ?, ?)";
                         _b.label = 1;
                     case 1:
@@ -149,7 +150,7 @@ var ApiController = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         idUsuario = req.params.idUsuario;
-                        sql = "SELECT idArchivo, nombre, archivo_url, fecha_subida, v.visibilidad, t.tipo\n    from Archivo a, Visibilidad v, Tipo_Archivo t\n    WHERE A.Archivo_idUsuario = ?\n    AND\tA.Archivo_idVisibilidad = v.idVisibilidad\n    AND v.idVisibilidad != 3\n    AND A.Archivo_idTipoArchivo = t.idTipo_Archivo\n    ORDER BY v.visibilidad, a.idArchivo";
+                        sql = "SELECT idArchivo, nombre, archivo_url, fecha_subida, v.idVisibilidad, v.visibilidad, t.tipo\n    from Archivo a, Visibilidad v, Tipo_Archivo t\n    WHERE A.Archivo_idUsuario = ?\n    AND\tA.Archivo_idVisibilidad = v.idVisibilidad\n    AND v.idVisibilidad != 3\n    AND A.Archivo_idTipoArchivo = t.idTipo_Archivo\n    ORDER BY v.visibilidad, a.idArchivo";
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
@@ -180,11 +181,11 @@ var ApiController = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         idUsuario = req.params.idUsuario;
-                        sql = "SELECT u.username, u.nombre, COUNT(a.idArchivo) as cantidad\n    FROM Usuario u, Archivo a, Visibilidad v\n    WHERE u.idUsuario != ?\n    AND u.idUsuario = a.Archivo_idUsuario\n    AND a.Archivo_idVisibilidad = v.idVisibilidad\n    AND v.idVisibilidad = 1";
+                        sql = "SELECT u.idUsuario, u.username, u.nombre, u.imagen_url, COUNT(a.idArchivo) as cantidad\nFROM Usuario u, Archivo a, Visibilidad v\nWHERE u.idUsuario = a.Archivo_idUsuario\nAND a.Archivo_idVisibilidad = v.idVisibilidad\nAND a.Archivo_idVisibilidad = 1\nAND u.idUsuario <> " + idUsuario + "\nAND NOT EXISTS (\n        SELECT d.idAmigo1, d.idAmigo2\n                FROM detalle_amistad d\n                WHERE d.idAmigo2 = u.idUsuario\n                AND d.idAmigo1 = " + idUsuario + "\n        )\nGROUP BY u.idUsuario\nUNION \nSELECT u2.idUsuario, u2.username, u2.nombre, u2.imagen_url, 0\n  FROM Usuario u2\n    WHERE u2.idUsuario <> " + idUsuario + "\n     AND not exists  (SELECT * FROM Archivo a2\n              WHERE u2.idUsuario = a2.Archivo_idUsuario);";
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, database_1.default.query(sql, [idUsuario])];
+                        return [4 /*yield*/, database_1.default.query(sql)];
                     case 2:
                         result = _a.sent();
                         if (result.length > 0) {
@@ -211,7 +212,7 @@ var ApiController = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         idUsuario = req.params.idUsuario;
-                        sql = "SELECT u.username, a.nombre as archivo, a.archivo_url, a.fecha_subida, t.tipo\n    FROM Usuario u, Detalle_Amistad d, Archivo a, tipo_archivo t\n    WHERE d.idAmigo1 = ?\n    AND d.idAmigo2 = u.idUsuario\n    AND u.idUsuario = a.Archivo_idUsuario\n    AND a.Archivo_idVisibilidad = 1\n    AND a.Archivo_idTipoArchivo = t.idTipo_Archivo";
+                        sql = "SELECT u.idUsuario, u.username, u.imagen_url, a.idArchivo, a.nombre as archivo, a.archivo_url, a.fecha_subida, t.tipo\n    FROM Usuario u, Detalle_Amistad d, Archivo a, tipo_archivo t\n    WHERE d.idAmigo1 = ?\n    AND d.idAmigo2 = u.idUsuario\n    AND u.idUsuario = a.Archivo_idUsuario\n    AND a.Archivo_idVisibilidad = 1\n    AND a.Archivo_idTipoArchivo = t.idTipo_Archivo";
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
@@ -267,7 +268,7 @@ var ApiController = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        idArchivo = req.body.idArchivo;
+                        idArchivo = req.params.idArchivo;
                         sql = "UPDATE Archivo\n    SET Archivo_idVisibilidad = 3\n    WHERE idArchivo = ?";
                         _a.label = 1;
                     case 1:

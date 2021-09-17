@@ -16,7 +16,7 @@ var ApiRoutes = /** @class */ (function () {
         this.router.get('/allUsersPublic/:idUsuario', apiController_1.apiController.allUsersPublicCount);
         this.router.get('/getFriendsFiles/:idUsuario', apiController_1.apiController.friendsPublicFiles);
         this.router.put('/updateFile', apiController_1.apiController.updateFile);
-        this.router.put('/deleteFile', apiController_1.apiController.deleteFile);
+        this.router.put('/deleteFile/:idArchivo', apiController_1.apiController.deleteFile);
     };
     return ApiRoutes;
 }());
