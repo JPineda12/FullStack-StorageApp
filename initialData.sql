@@ -1,24 +1,24 @@
 USE semi1_proyecto1;
 
-INSERT INTO Rol(rol) 
+INSERT INTO semi1_proyecto1.Rol(rol) 
 VALUES("Admin");
 
-INSERT INTO Rol(rol)
+INSERT INTO semi1_proyecto1.Rol(rol)
 VALUES("User");
 
-INSERT INTO Visibilidad(visibilidad)
+INSERT INTO semi1_proyecto1.Visibilidad(visibilidad)
 VALUES ('Publico');
 
-INSERT INTO Visibilidad(visibilidad)
+INSERT INTO semi1_proyecto1.Visibilidad(visibilidad)
 VALUES ('Privado');
 
-INSERT INTO Visibilidad(visibilidad)
+INSERT INTO semi1_proyecto1.Visibilidad(visibilidad)
 VALUES ('Eliminado');
 
-INSERT INTO Tipo_Archivo(tipo)
+INSERT INTO semi1_proyecto1.Tipo_Archivo(tipo)
 VALUES ('Imagen');
 
-INSERT INTO Tipo_Archivo(tipo)
+INSERT INTO semi1_proyecto1.Tipo_Archivo(tipo)
 VALUES ('Pdf');
 
 INSERT INTO Estado_Amistad(estado)

@@ -2,14 +2,14 @@ import { Router } from 'express';
 import { apiController } from '../controllers/apiController';
 class ApiRoutes {
     public router: Router = Router();
-
+    
     constructor() {
         this.config();
     }
 
     config(): void {
         this.router.post('/login', apiController.login);
-        this.router.post('/register', apiController.register);
+        this.router.post('/signup', apiController.signup);
         this.router.post('/addFriend', apiController.addFriend);
         this.router.post('/uploadFile', apiController.uploadFile);        
         this.router.get('/getUserFiles/:idUsuario', apiController.getUserFiles);

@@ -10,7 +10,7 @@
         <input type="text" v-model="loginValues.user" placeholder="Username" />
         <input
           type="password"
-          v-model="loginValues.pass"
+          v-model="loginValues.contrasena"
           placeholder="Password"
         />
         <div class="Botones">
@@ -40,14 +40,13 @@
 </template>
 
 <script>
-import bcrypt from "bcryptjs";
 export default {
   name: "Login",
   data() {
     return {
       loginValues: {
         user: "",
-        pass: "",
+        contrasena: "",
       },
       txtError: null,
     };
@@ -58,23 +57,14 @@ export default {
       await this.axios
         .post("/login", this.loginValues)
         .then((response) => {
-          if (response.data.length > 0) {
-            bcrypt.compare(this.loginValues.pass, response.data[0].contrasena, function (err, result) {
-              if (err) {
-                throw err;
-              }
-              if(result === true){
-                localStorage.setItem("user-info", JSON.stringify(response.data[0]));
-                this.$router.push({ name: "Home" });                
-              }else{
-                this.txtError = "Credenciales Incorrectas";
-              }
-            }.bind(this));
-            
-            this.loginValues.pass = "";
+          console.log("Resp:", response);
+          if (response.data.status === true) {
+            localStorage.setItem("user-info", JSON.stringify(response.data.result[0]));
+            this.$router.push({ name: "Home" });
+            this.loginValues.contrasena = "";
           } else {
             this.txtError = "Credenciales Incorrectas";
-            this.loginValues.pass = "";
+            this.loginValues.contrasena = "";
           }
         })
         .catch((error) => {
@@ -82,7 +72,7 @@ export default {
         });
     },
     goToRegister() {
-      this.$router.push({ name: "Register" });
+      this.$router.push({ name: "Signup" });
     },
   },
 };

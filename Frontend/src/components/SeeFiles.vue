@@ -15,7 +15,8 @@
             class="card-top"
           >
             <div class="card-image">
-              <img :src="file.archivo_url" />
+              <img v-if="file.tipo === 'Imagen'" :src="file.archivo_url" />
+              <img v-else-if="file.tipo === 'Pdf'" :src="pdfPreview" />
             </div>
             <div class="card-text">
               <h4>{{ file.archivo }}</h4>
@@ -66,7 +67,7 @@ export default {
     Files: Array,
   },
   data() {
-    return {};
+    return { pdfPreview: require("../assets/pdficon.png") };
   },
   computed: {
     getIdUsuario() {

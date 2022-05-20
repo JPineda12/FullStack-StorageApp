@@ -41,12 +41,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.apiController = void 0;
 var database_1 = __importDefault(require("../database"));
+var uuid_1 = require("uuid");
 var ApiController = /** @class */ (function () {
     function ApiController() {
     }
     ApiController.prototype.login = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var user, sql, result, err_1;
+            var user, sql, result, crypto, hash, err_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -59,7 +60,17 @@ var ApiController = /** @class */ (function () {
                     case 2:
                         result = _a.sent();
                         if (result.length > 0) {
-                            res.json(result);
+                            crypto = require("crypto");
+                            hash = crypto
+                                .createHash("sha256")
+                                .update(req.body.contrasena)
+                                .digest("hex");
+                            if (result[0].contrasena === hash + "D**") {
+                                res.json({ status: true, result: result });
+                            }
+                            else {
+                                res.json([]);
+                            }
                         }
                         else {
                             res.json([]);
@@ -75,14 +86,25 @@ var ApiController = /** @class */ (function () {
             });
         });
     };
-    ApiController.prototype.register = function (req, res) {
+    ApiController.prototype.signup = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, user, correo, nombre, contrasena, imagen_url, idRol, sql, result, err_2;
+            var _a, user, correo, nombre, contrasena, base64, idRol, sql, img_name, file_destination, base64File, fs, crypto, hash, result, err_2;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        _a = req.body, user = _a.user, correo = _a.correo, nombre = _a.nombre, contrasena = _a.contrasena, imagen_url = _a.imagen_url, idRol = _a.idRol;
+                        _a = req.body, user = _a.user, correo = _a.correo, nombre = _a.nombre, contrasena = _a.contrasena, base64 = _a.base64, idRol = _a.idRol;
                         sql = "INSERT INTO Usuario(username, correo, nombre, contrasena, imagen_url, Rol_idRol)\n    VALUES(?, ?, ?, ?, ?, ?)";
+                        img_name = user + "-" + uuid_1.v4() + ".jpg";
+                        file_destination = "files/profile-pictures/" + img_name;
+                        base64File = base64.split(";base64,").pop();
+                        fs = require("fs");
+                        fs.writeFile(file_destination, base64File, { encoding: "base64" }, function (err) {
+                            if (err)
+                                console.log("Error al crear archivo:\n", err);
+                            console.log("File created");
+                        });
+                        crypto = require("crypto");
+                        hash = crypto.createHash("sha256").update(contrasena).digest("hex");
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 3, , 4]);
@@ -90,8 +112,8 @@ var ApiController = /** @class */ (function () {
                                 user,
                                 correo,
                                 nombre,
-                                contrasena,
-                                imagen_url,
+                                hash + "D**",
+                                process.env.FILES_SERVER_URL + "/profile-pictures/" + img_name,
                                 idRol,
                             ])];
                     case 2:
@@ -110,20 +132,47 @@ var ApiController = /** @class */ (function () {
             });
         });
     };
+    ApiController.prototype.crearArchivo = function (base64, dir_destination) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                console.log("IN");
+                return [2 /*return*/];
+            });
+        });
+    };
     ApiController.prototype.uploadFile = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, nombre, archivo_url, fecha_subida, idUsuario, idVisibilidad, idTipoArchivo, base64, sql, result, err_3;
+            var _a, nombre, fecha_subida, idUsuario, idVisibilidad, idTipoArchivo, base64, file_destination, img_name, url_aux, base64File, fs, sql, result, err_3;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        _a = req.body, nombre = _a.nombre, archivo_url = _a.archivo_url, fecha_subida = _a.fecha_subida, idUsuario = _a.idUsuario, idVisibilidad = _a.idVisibilidad, idTipoArchivo = _a.idTipoArchivo, base64 = _a.base64;
+                        _a = req.body, nombre = _a.nombre, fecha_subida = _a.fecha_subida, idUsuario = _a.idUsuario, idVisibilidad = _a.idVisibilidad, idTipoArchivo = _a.idTipoArchivo, base64 = _a.base64;
+                        if (idTipoArchivo === 1) {
+                            //Es Imagen, se guarda en la carpeta "files" del servidor http-server
+                            img_name = nombre + "-" + uuid_1.v4() + ".jpg";
+                            file_destination = "files/images/" + img_name;
+                            url_aux = "images/" + img_name;
+                        }
+                        else {
+                            //Es Pdf, se guarda en la carpeta "files" del servidor http-server
+                            img_name = nombre + "-" + uuid_1.v4() + ".pdf";
+                            file_destination = "files/docs/" + img_name;
+                            url_aux = "docs/" + img_name;
+                        }
+                        base64File = base64.split(";base64,").pop();
+                        fs = require("fs");
+                        fs.writeFile(file_destination, base64File, { encoding: "base64" }, function (err) {
+                            if (err)
+                                console.log("Error al crear archivo:\n", err);
+                            console.log("File created");
+                        });
                         sql = "INSERT INTO Archivo(nombre, archivo_url, fecha_subida, Archivo_idUsuario, Archivo_idVisibilidad, Archivo_idTipoArchivo)\n    VALUES(?, ?, ?, ?, ?, ?)";
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 3, , 4]);
                         return [4 /*yield*/, database_1.default.query(sql, [
                                 nombre,
-                                archivo_url,
+                                process.env.FILES_SERVER_URL + "/" + url_aux,
                                 fecha_subida,
                                 idUsuario,
                                 idVisibilidad,
@@ -131,7 +180,9 @@ var ApiController = /** @class */ (function () {
                             ])];
                     case 2:
                         result = _b.sent();
-                        res.status(200).json({ status: true, result: "Archivo subido satisfactoriamente" });
+                        res
+                            .status(200)
+                            .json({ status: true, result: "Archivo subido satisfactoriamente" });
                         return [3 /*break*/, 4];
                     case 3:
                         err_3 = _b.sent();
@@ -250,7 +301,9 @@ var ApiController = /** @class */ (function () {
                         return [4 /*yield*/, database_1.default.query(sql, [nombre, idVisibilidad, idArchivo])];
                     case 2:
                         result = _b.sent();
-                        res.status(200).json({ status: true, result: "Actualizado correctamente" });
+                        res
+                            .status(200)
+                            .json({ status: true, result: "Actualizado correctamente" });
                         return [3 /*break*/, 4];
                     case 3:
                         err_7 = _b.sent();
@@ -302,7 +355,9 @@ var ApiController = /** @class */ (function () {
                         return [4 /*yield*/, database_1.default.query(sql, [idAmigo1, idAmigo2, fecha_amistad])];
                     case 2:
                         result = _b.sent();
-                        res.status(200).json({ status: true, result: "Amigo agregado correctamente" });
+                        res
+                            .status(200)
+                            .json({ status: true, result: "Amigo agregado correctamente" });
                         return [3 /*break*/, 4];
                     case 3:
                         err_9 = _b.sent();

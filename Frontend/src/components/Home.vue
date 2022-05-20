@@ -240,7 +240,6 @@ import UploadFile from "./UploadFile";
 import EditFile from "./EditFile";
 import SeeFiles from "./SeeFiles";
 import Swal from "sweetalert2";
-import bcrypt from "bcryptjs";
 
 export default {
   name: "Home",
@@ -405,52 +404,40 @@ export default {
         if (result.isConfirmed) {
           let us = {
             user: this.user.username,
+            contrasena: result.value,
           };
           this.axios
             .post("/login", us)
             .then((response) => {
-              if (response.data.length > 0) {
-                bcrypt.compare(
-                  result.value,
-                  response.data[0].contrasena,
-                  function (err, resultx) {
-                    if (err) {
-                      throw err;
-                    }
-                    if (resultx === true) {
-                      this.axios
-                        .put(`/deleteFile/${archivo.idArchivo}`)
-                        .then((response) => {
-                          if (response.data.status === true) {
-                            Swal.fire(
-                              "Eliminado!",
-                              "El archivo ha sido eliminado satisfactoriamente",
-                              "success"
-                            );
-                            if (archivo.visibilidad === "Publico") {
-                              const index = this.publicFiles.indexOf(archivo);
-                              if (index > -1) {
-                                this.publicFiles.splice(index, 1);
-                              }
-                            } else {
-                              const index = this.privateFiles.indexOf(archivo);
-                              if (index > -1) {
-                                this.privateFiles.splice(index, 1);
-                              }
-                            }
-                          } else {
-                            Swal.fire(
-                              "Error!",
-                              "No se pudo hacer la eliminacion en el servidor",
-                              "error"
-                            );
-                          }
-                        });
+              if (response.data.status === true) {
+                this.axios
+                  .put(`/deleteFile/${archivo.idArchivo}`)
+                  .then((response) => {
+                    if (response.data.status === true) {
+                      Swal.fire(
+                        "Eliminado!",
+                        "El archivo ha sido eliminado satisfactoriamente",
+                        "success"
+                      );
+                      if (archivo.visibilidad === "Publico") {
+                        const index = this.publicFiles.indexOf(archivo);
+                        if (index > -1) {
+                          this.publicFiles.splice(index, 1);
+                        }
+                      } else {
+                        const index = this.privateFiles.indexOf(archivo);
+                        if (index > -1) {
+                          this.privateFiles.splice(index, 1);
+                        }
+                      }
                     } else {
-                      Swal.fire("Error!", "Contraseña Incorrecta", "error");
+                      Swal.fire(
+                        "Error!",
+                        "No se pudo hacer la eliminacion en el servidor",
+                        "error"
+                      );
                     }
-                  }.bind(this)
-                );
+                  });
               } else {
                 Swal.fire("Error!", "Contraseña Incorrecta", "error");
               }
