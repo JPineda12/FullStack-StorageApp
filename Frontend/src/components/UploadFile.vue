@@ -124,7 +124,6 @@ export default {
       }
       let idTipo = -1; //imagen = 1 .. pdf = 2
       let extension = this.nombreFile.split(".", 2)[1];
-      console.log("AVER: ", extension);
       if (extension === "pdf") {
         idTipo = 2;
         this.imagen = this.urlPDF;
@@ -157,6 +156,11 @@ export default {
         .then((response) => {
           if (response.data.status === true) {
             Swal.fire("Archivo Subido!", "", "success");
+            this.nombreFile = "";
+            this.imagen = require("../assets/freeFile.jpg");
+            this.nombreFinal = "";
+            this.imagenBase64 = "";
+            this.selectedVisibilidad = "";
             this.$emit("newFile");
             this.$emit("close");
           } else {
@@ -177,6 +181,11 @@ export default {
         });
     },
     close() {
+      this.nombreFile = "";
+      this.nombreFinal = "";
+      this.imagen = require("../assets/freeFile.jpg");
+      this.imagenBase64 = "";
+      this.selectedVisibilidad = "";
       this.$emit("close");
     },
   },

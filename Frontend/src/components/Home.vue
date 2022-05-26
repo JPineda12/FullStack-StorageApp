@@ -276,7 +276,6 @@ export default {
     }
     try {
       this.user = JSON.parse(us);
-      //console.log(this.user);
       this.getFiles();
     } catch (e) {
       console.log("ERROR: ", e);
@@ -299,7 +298,7 @@ export default {
               let auxArch = {
                 idArchivo: response.data[i].idArchivo,
                 archivo_url: response.data[i].archivo_url,
-                fecha_subida: response.data[i].fecha_subida,
+                fecha_subida: response.data[i].fecha_subida.split("T")[0],
                 nombre: response.data[i].nombre,
                 tipo: response.data[i].tipo,
                 idVisibilidad: response.data[i].idVisibilidad,
@@ -479,7 +478,7 @@ export default {
               idArchivo: response.data[i].idArchivo,
               archivo: response.data[i].archivo,
               archivo_url: response.data[i].archivo_url,
-              fecha_subida: response.data[i].fecha_subida,
+              fecha_subida: response.data[i].fecha_subida.split("T")[0],
               tipo: response.data[i].tipo,
             };
             this.FriendsFiles.push(aux);
@@ -496,7 +495,16 @@ export default {
     },
 
     viewFile(archivo) {
-      console.log(archivo);
+      if (archivo.tipo === "Imagen") {
+        Swal.fire({
+          width: 530,
+          imageUrl: archivo.archivo_url,
+          imageHeight: 450,
+          imageWidth: 500,
+        });
+      } else {
+        window.open(archivo.archivo_url, "_blank");
+      }
     },
     logout() {
       localStorage.clear();

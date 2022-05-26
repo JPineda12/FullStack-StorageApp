@@ -79,7 +79,6 @@ export default {
   },
   methods: {
     verFile(file) {
-      console.log(file.tipo);
       if (file.tipo === "Imagen") {
         Swal.fire({
           width: 530,
@@ -87,6 +86,8 @@ export default {
           imageHeight: 450,
           imageWidth: 500,
         });
+      } else {
+        window.open(file.archivo_url, "_blank");
       }
     },
     close() {

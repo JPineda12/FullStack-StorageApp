@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import pool from "../database";
+import pool from "../config/database";
 import { v4 as uuidv4 } from "uuid";
 
 class ApiController {
@@ -66,10 +66,6 @@ class ApiController {
       res.status(200).json({ status: false, result: "Ocurrio un error" });
       console.log("ERROR: " + err);
     }
-  }
-
-  public async crearArchivo(base64: string, dir_destination: string) {
-    console.log("IN");
   }
 
   public async uploadFile(req: Request, res: Response) {

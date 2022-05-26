@@ -19,7 +19,7 @@
         <div class="friends-list">
           <div
             id="user-info"
-            v-for="user of Users"
+            v-for="user of filteredUsers"
             :key="user.idUsuario"
             class="card-top"
           >
@@ -65,6 +65,7 @@ export default {
   emits: ["close"],
   beforeMount() {
     this.getUsers();
+    this.filteredUsers = this.Users;
   },
   props: {
     idUser: Number,
@@ -74,6 +75,7 @@ export default {
       busqueda: "",
       imagen: "",
       Users: [],
+      filteredUsers: [],
     };
   },
   computed: {
@@ -143,7 +145,19 @@ export default {
         }
       });
     },
-    searchUser() {},
+    searchUser() {
+      if(this.busqueda === ""){
+        this.filteredUsers = this.Users;
+        return
+      }
+      this.filteredUsers = []
+      for (let p of this.Users) {
+        //user.nombre
+          if(p.nombre.includes(this.busqueda)){
+            this.filteredUsers.push(p);
+          }
+      }
+    },
     close() {
       this.$emit("close");
     },
@@ -294,6 +308,7 @@ svg:hover {
 
 .card-image img {
   width: 100%;
+
   object-fit: cover;
 }
 .card-top img {
@@ -313,6 +328,10 @@ svg:hover {
   line-height: 1.35em;
   color: #345;
 }
+img{
+  min-height: 300px;
+  max-height: 300px;
+}
 @media (max-width: 200px) {
   .card-top {
     flex-direction: row;
@@ -326,7 +345,6 @@ svg:hover {
   }
   .card-top .card-image,
   .card-bottom .card-image {
-    height: 100%;
     width: 50%;
   }
   .card-top img {

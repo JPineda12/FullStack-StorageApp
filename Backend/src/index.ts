@@ -4,7 +4,6 @@ import cors from 'cors';
 
 import indexRoutes from './routes/indexRoutes';
 import apiRoutes from './routes/apiRoutes';
-import s3Routes from './routes/s3Routes';
 
 class Server{
     public app: Application;
@@ -27,7 +26,6 @@ class Server{
     routes(): void{
         this.app.use('/', indexRoutes);
         this.app.use('/api', apiRoutes);
-        this.app.use('/aws', s3Routes);
     }
 
     start(): void{

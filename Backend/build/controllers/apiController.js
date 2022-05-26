@@ -40,7 +40,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.apiController = void 0;
-var database_1 = __importDefault(require("../database"));
+var database_1 = __importDefault(require("../config/database"));
 var uuid_1 = require("uuid");
 var ApiController = /** @class */ (function () {
     function ApiController() {
@@ -129,14 +129,6 @@ var ApiController = /** @class */ (function () {
                         return [3 /*break*/, 4];
                     case 4: return [2 /*return*/];
                 }
-            });
-        });
-    };
-    ApiController.prototype.crearArchivo = function (base64, dir_destination) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                console.log("IN");
-                return [2 /*return*/];
             });
         });
     };
