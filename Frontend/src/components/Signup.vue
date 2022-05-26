@@ -1,7 +1,7 @@
-<template>
+ <template>
   <div class="wrapper">
     <div class="container">
-      <form class="form" @submit="registerEvent">
+      <form class="form" @submit="signupEvent">
         <div class="titulo">
           <h1 class="header heading">
             <span class="heading--underline">Registrarse</span>
@@ -15,22 +15,22 @@
           <div class="user-data">
             <input
               type="text"
-              v-model="registerValues.user"
+              v-model="signupValues.user"
               placeholder="Username"
             />
             <input
               type="text"
-              v-model="registerValues.correo"
+              v-model="signupValues.correo"
               placeholder="Email"
             />
             <input
               type="password"
-              v-model="registerValues.contrasena"
+              v-model="signupValues.contrasena"
               placeholder="Password"
             />
             <input
               type="password"
-              v-model="registerValues.confirmPass"
+              v-model="signupValues.confirmPass"
               placeholder="Confirm Password"
             />
           </div>
@@ -48,7 +48,7 @@
         </div>
         <div class="Botones">
           <div>
-            <button type="submit" id="register-button">Registrarse</button>
+            <button type="submit" id="signup-button">Registrarse</button>
           </div>
           <div><button @click="goBack()" id="back-button">Volver</button></div>
         </div>
@@ -72,13 +72,12 @@
 
 <script>
 import Swal from "sweetalert2";
-import bcrypt from "bcryptjs";
 
 export default {
-  name: "Register",
+  name: "Signup",
   data() {
     return {
-      registerValues: {
+      signupValues: {
         user: "",
         correo: "",
         contrasena: "",
@@ -96,33 +95,28 @@ export default {
     }
   },
   methods: {
-    registerEvent(event) {
+    signupEvent(event) {
       event.preventDefault();
       console.log(this.imagenBase64);
       console.log(this.imagenBase64.length);
       if (
-        this.registerValues.user.length > 0 &&
-        this.registerValues.correo.length > 0 &&
+        this.signupValues.user.length > 0 &&
+        this.signupValues.correo.length > 0 &&
         this.imagenBase64.length > 0 &&
-        this.registerValues.contrasena.length > 0 &&
-        this.registerValues.confirmPass.length > 0
+        this.signupValues.contrasena.length > 0 &&
+        this.signupValues.confirmPass.length > 0
       ) {
-        const salt = bcrypt.genSaltSync(10)
-        this.registerValues.contrasena = bcrypt.hashSync(this.registerValues.contrasena, salt)
-        console.log("SAVING: ", this.registerValues.contrasena)
         let user = {
-          user: this.registerValues.user,
-          correo: this.registerValues.correo,
-          nombre: this.registerValues.user,
-          contrasena: this.registerValues.contrasena,
-          imagen_url:
-            "https://i.pinimg.com/originals/2c/68/a2/2c68a2099526c36259b51f707e5e66f7.jpg",
+          user: this.signupValues.user,
+          correo: this.signupValues.correo,
+          nombre: this.signupValues.user,
+          contrasena: this.signupValues.contrasena,
+          base64: this.imagenBase64,
           idRol: 2,
         };
-        console.log(user);
         
         this.axios
-          .post("/register", user)
+          .post("/signup", user)
           .then((response) => {
             if (response.data.status === true) {
               this.mensajeOk();
@@ -196,7 +190,7 @@ export default {
   background-size: 100% 88%;
   z-index: 2;
 }
-#register-button {
+#signup-button {
   margin-bottom: 2px;
 }
 

@@ -9,7 +9,7 @@ var ApiRoutes = /** @class */ (function () {
     }
     ApiRoutes.prototype.config = function () {
         this.router.post('/login', apiController_1.apiController.login);
-        this.router.post('/register', apiController_1.apiController.register);
+        this.router.post('/signup', apiController_1.apiController.signup);
         this.router.post('/addFriend', apiController_1.apiController.addFriend);
         this.router.post('/uploadFile', apiController_1.apiController.uploadFile);
         this.router.get('/getUserFiles/:idUsuario', apiController_1.apiController.getUserFiles);

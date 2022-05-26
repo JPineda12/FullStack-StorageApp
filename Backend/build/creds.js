@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var aws_keys = {
     s3: {
-        region: '',
+        region: 'us-east-2',
         accessKeyId: "",
         secretAccessKey: "",
         //apiVersion: '2006-03-01',

@@ -1,5 +1,5 @@
 import Login from "./components/Login";
-import Register from "./components/Register";
+import Signup from "./components/Signup";
 import Home from "./components/Home";
 import { createRouter, createWebHistory } from "vue-router";
 
@@ -11,9 +11,9 @@ const routes = [{
         }
     },
     {
-        name: "Register",
-        component: Register,
-        path: "/register",
+        name: "Signup",
+        component: Signup,
+        path: "/signup",
         meta: {
             title: 'U-Storage - Registrarse'
         }

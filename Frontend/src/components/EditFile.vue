@@ -64,7 +64,6 @@
 
 <script>
 import Swal from "sweetalert2";
-import bcrypt from "bcryptjs";
 
 export default {
   name: "UploadFile",
@@ -123,71 +122,58 @@ export default {
       if (this.pass !== "") {
         let user = {
           user: this.getUsername,
-          pass: this.pass,
+          contrasena: this.pass,
         };
         this.axios
           .post("/login", user)
           .then((response) => {
-            if (response.data.length > 0) {
-              bcrypt.compare(
-                this.pass,
-                response.data[0].contrasena,
-                function (err, result) {
-                  if (err) {
-                    throw err;
-                  }
-                  if (result === true) {
-                    if (this.selectedVisibilidad === "") {
-                      this.selectedVisibilidad = this.getVisibilidad;
-                    }
-                    if (this.nombreFinal === "") {
-                      this.nombreFinal = this.getNombre;
-                    }
-                    let idVis;
-                    if (this.selectedVisibilidad === "Publico") {
-                      idVis = 1;
-                    } else {
-                      idVis = 2;
-                    }
+            if (response.data.status === true) {
+              if (this.selectedVisibilidad === "") {
+                this.selectedVisibilidad = this.getVisibilidad;
+              }
+              if (this.nombreFinal === "") {
+                this.nombreFinal = this.getNombre;
+              }
+              let idVis;
+              if (this.selectedVisibilidad === "Publico") {
+                idVis = 1;
+              } else {
+                idVis = 2;
+              }
 
-                    let auxEditedArchivo = {
-                      idArchivo: this.getId,
-                      imagen_arch: this.getImagen,
-                      fecha_subida: this.getFechaSubida,
-                      tipo: this.getTipo,
-                      archivo_url: this.getArchivoUrl,
-                      idVisibilidad: idVis,
-                      visibilidad: this.selectedVisibilidad,
-                      nombre: this.nombreFinal,
-                    };
-                    console.log(auxEditedArchivo.idVisibilidad);
-                    this.axios
-                      .put("/updateFile", auxEditedArchivo)
-                      .then((response) => {
-                        if (response.data.status === true) {
-                          Swal.fire("Archivo Editado!", "", "success");
-                          this.$emit("editedFile", auxEditedArchivo);
-                        } else {
-                          Swal.fire(
-                            "Ocurrio un error al comunicarse con el servidor para editar!",
-                            "",
-                            "error"
-                          );
-                        }
-                      })
-                      .catch((error) => {
-                        console.log(error);
-                      });
-
-                    this.$emit("close");
-                    this.nombreFinal = "";
-                    this.selectedVisibilidad = this.getVisibilidad;
-                    this.pass = "";
+              let auxEditedArchivo = {
+                idArchivo: this.getId,
+                imagen_arch: this.getImagen,
+                fecha_subida: this.getFechaSubida,
+                tipo: this.getTipo,
+                archivo_url: this.getArchivoUrl,
+                idVisibilidad: idVis,
+                visibilidad: this.selectedVisibilidad,
+                nombre: this.nombreFinal,
+              };
+              console.log(auxEditedArchivo.idVisibilidad);
+              this.axios
+                .put("/updateFile", auxEditedArchivo)
+                .then((response) => {
+                  if (response.data.status === true) {
+                    Swal.fire("Archivo Editado!", "", "success");
+                    this.$emit("editedFile", auxEditedArchivo);
                   } else {
-                    Swal.fire("Contraseña Incorrecta", "", "error");
+                    Swal.fire(
+                      "Ocurrio un error al comunicarse con el servidor para editar!",
+                      "",
+                      "error"
+                    );
                   }
-                }.bind(this)
-              );
+                })
+                .catch((error) => {
+                  console.log(error);
+                });
+
+              this.$emit("close");
+              this.nombreFinal = "";
+              this.selectedVisibilidad = this.getVisibilidad;
+              this.pass = "";
             } else {
               Swal.fire("Contraseña Incorrecta", "", "error");
             }

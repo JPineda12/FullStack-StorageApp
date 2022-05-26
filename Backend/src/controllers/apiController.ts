@@ -1,16 +1,27 @@
 import { Request, Response } from "express";
-import pool from "../database";
+import pool from "../config/database";
+import { v4 as uuidv4 } from "uuid";
 
 class ApiController {
   public async login(req: Request, res: Response) {
     const { user } = req.body;
     let sql = `SELECT idUsuario, username, contrasena, correo, nombre, imagen_url, Rol_idRol FROM Usuario
         WHERE username=?`;
+
     try {
       const result = await pool.query(sql, [user]);
-      if(result.length > 0) {
-        res.json(result);
-      }else{
+      if (result.length > 0) {
+        var crypto = require("crypto");
+        var hash = crypto
+          .createHash("sha256")
+          .update(req.body.contrasena)
+          .digest("hex");
+        if (result[0].contrasena === hash + "D**") {
+          res.json({ status: true, result: result });
+        } else {
+          res.json([]);
+        }
+      } else {
         res.json([]);
       }
     } catch (err) {
@@ -19,18 +30,33 @@ class ApiController {
     }
   }
 
-  public async register(req: Request, res: Response) {
-    const { user, correo, nombre, contrasena, imagen_url, idRol } = req.body;
+  public async signup(req: Request, res: Response) {
+    const { user, correo, nombre, contrasena, base64, idRol } = req.body;
     let sql = `INSERT INTO Usuario(username, correo, nombre, contrasena, imagen_url, Rol_idRol)
     VALUES(?, ?, ?, ?, ?, ?)`;
+    let img_name = user + "-" + uuidv4() + ".jpg";
+    let file_destination = "files/profile-pictures/" + img_name;
+    let base64File = base64.split(";base64,").pop();
+    const fs = require("fs");
 
+    fs.writeFile(
+      file_destination,
+      base64File,
+      { encoding: "base64" },
+      function (err: any) {
+        if (err) console.log("Error al crear archivo:\n", err);
+        console.log("File created");
+      }
+    );
+    const crypto = require("crypto");
+    const hash = crypto.createHash("sha256").update(contrasena).digest("hex");
     try {
       const result = await pool.query(sql, [
         user,
         correo,
         nombre,
-        contrasena,
-        imagen_url,
+        hash + "D**",
+        process.env.FILES_SERVER_URL + "/profile-pictures/" + img_name,
         idRol,
       ]);
       res
@@ -45,25 +71,52 @@ class ApiController {
   public async uploadFile(req: Request, res: Response) {
     const {
       nombre,
-      archivo_url,
       fecha_subida,
       idUsuario,
       idVisibilidad,
       idTipoArchivo,
       base64,
     } = req.body;
+    var file_destination;
+    let img_name;
+    let url_aux;
+    if (idTipoArchivo === 1) {
+      //Es Imagen, se guarda en la carpeta "files" del servidor http-server
+      img_name = nombre + "-" + uuidv4() + ".jpg";
+      file_destination = "files/images/" + img_name;
+      url_aux = "images/" + img_name;
+    } else {
+      //Es Pdf, se guarda en la carpeta "files" del servidor http-server
+      img_name = nombre + "-" + uuidv4() + ".pdf";
+      file_destination = "files/docs/" + img_name;
+      url_aux = "docs/" + img_name;
+    }
+    let base64File = base64.split(";base64,").pop();
+    const fs = require("fs");
+
+    fs.writeFile(
+      file_destination,
+      base64File,
+      { encoding: "base64" },
+      function (err: any) {
+        if (err) console.log("Error al crear archivo:\n", err);
+        console.log("File created");
+      }
+    );
     let sql = `INSERT INTO Archivo(nombre, archivo_url, fecha_subida, Archivo_idUsuario, Archivo_idVisibilidad, Archivo_idTipoArchivo)
     VALUES(?, ?, ?, ?, ?, ?)`;
     try {
       const result = await pool.query(sql, [
         nombre,
-        archivo_url,
+        process.env.FILES_SERVER_URL + "/"+url_aux,
         fecha_subida,
         idUsuario,
         idVisibilidad,
         idTipoArchivo,
       ]);
-      res.status(200).json({ status: true, result: "Archivo subido satisfactoriamente"});
+      res
+        .status(200)
+        .json({ status: true, result: "Archivo subido satisfactoriamente" });
     } catch (err) {
       res.status(200).json({ status: false, result: err });
       console.log("ERROR: " + err);
@@ -80,9 +133,9 @@ class ApiController {
     ORDER BY v.visibilidad, a.idArchivo`;
     try {
       const result = await pool.query(sql, [idUsuario]);
-      if(result.length > 0) {
+      if (result.length > 0) {
         res.json(result);
-      }else{
+      } else {
         res.json([]);
       }
     } catch (err) {
@@ -113,9 +166,9 @@ SELECT u2.idUsuario, u2.username, u2.nombre, u2.imagen_url, 0
               WHERE u2.idUsuario = a2.Archivo_idUsuario);`;
     try {
       const result = await pool.query(sql);
-      if(result.length > 0) {
+      if (result.length > 0) {
         res.json(result);
-      }else{
+      } else {
         res.json([]);
       }
     } catch (err) {
@@ -135,9 +188,9 @@ SELECT u2.idUsuario, u2.username, u2.nombre, u2.imagen_url, 0
     AND a.Archivo_idTipoArchivo = t.idTipo_Archivo`;
     try {
       const result = await pool.query(sql, [idUsuario]);
-      if(result.length > 0) {
+      if (result.length > 0) {
         res.json(result);
-      }else{
+      } else {
         res.json([]);
       }
     } catch (err) {
@@ -153,14 +206,16 @@ SELECT u2.idUsuario, u2.username, u2.nombre, u2.imagen_url, 0
     WHERE idArchivo = ?`;
     try {
       const result = await pool.query(sql, [nombre, idVisibilidad, idArchivo]);
-      res.status(200).json({ status: true, result:"Actualizado correctamente" });
+      res
+        .status(200)
+        .json({ status: true, result: "Actualizado correctamente" });
     } catch (err) {
       res.status(200).json({ status: false, result: err });
       console.log("ERROR: " + err);
     }
   }
   public async deleteFile(req: Request, res: Response) {
-    const { idArchivo} = req.params;
+    const { idArchivo } = req.params;
     let sql = `UPDATE Archivo
     SET Archivo_idVisibilidad = 3
     WHERE idArchivo = ?`;
@@ -179,7 +234,9 @@ SELECT u2.idUsuario, u2.username, u2.nombre, u2.imagen_url, 0
     VALUES (?, ?, ?, 1)`;
     try {
       const result = await pool.query(sql, [idAmigo1, idAmigo2, fecha_amistad]);
-      res.status(200).json({ status: true, result: "Amigo agregado correctamente" });
+      res
+        .status(200)
+        .json({ status: true, result: "Amigo agregado correctamente" });
     } catch (err) {
       res.status(200).json({ status: false, result: err });
       console.log("ERROR: " + err);

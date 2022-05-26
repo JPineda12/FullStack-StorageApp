@@ -26,14 +26,26 @@
           <div class="labels">
             <label class="containerLab"
               >Publico
-              <input type="radio" id="pub" name="radio" value="Publico" :checked="getVisibilidad == 'Publico'"
-                v-model="selectedVisibilidad" />
+              <input
+                type="radio"
+                id="pub"
+                name="radio"
+                value="Publico"
+                :checked="getVisibilidad == 'Publico'"
+                v-model="selectedVisibilidad"
+              />
               <span class="checkmark"></span>
             </label>
             <label class="containerLab"
               >Privado
-              <input type="radio" id="priv" name="radio" value="Privado" :checked="visible == 'Privado'"
-                v-model="selectedVisibilidad"/>
+              <input
+                type="radio"
+                id="priv"
+                name="radio"
+                value="Privado"
+                :checked="visible == 'Privado'"
+                v-model="selectedVisibilidad"
+              />
               <span class="checkmark"></span>
             </label>
           </div>
@@ -67,34 +79,35 @@ export default {
       selectedVisibilidad: "",
 
       visible: true,
-      urlPDF: require("../assets/pdficon.png")
+      urlPDF: require("../assets/pdficon.png"),
     };
   },
   computed: {
     getIdUsuario() {
       return this.idUser;
     },
-      getVisibilidad() {
+    getVisibilidad() {
       return "Publico";
     },
   },
   methods: {
     handlePhoto(event) {
       const file = event.target.files[0];
-      let extension = file.name.split(".", 2)[1]
-      if( extension === "pdf"){
-        this.imagen = this.urlPDF
-        this.imagenBase64 = "";
-      }else if(extension === "png" || extension === "jpg" || extension === "jpeg"){
-      this.imagen = URL.createObjectURL(file);
-      this.createBase64Image(file);
-      this.nombreFile = file.name;
-      }else{
-         Swal.fire(
-              "Error - Tipo de archivo no admitido",
-              "",
-              "error"
-            );
+      let extension = file.name.split(".", 2)[1];
+      if (extension === "pdf") {
+        this.imagen = this.urlPDF;
+        this.createBase64Image(file);
+        this.nombreFile = file.name;
+      } else if (
+        extension === "png" ||
+        extension === "jpg" ||
+        extension === "jpeg"
+      ) {
+        this.imagen = URL.createObjectURL(file);
+        this.createBase64Image(file);
+        this.nombreFile = file.name;
+      } else {
+        Swal.fire("Error - Tipo de archivo no admitido", "", "error");
       }
     },
     createBase64Image(fileObject) {
@@ -113,13 +126,13 @@ export default {
       let extension = this.nombreFile.split(".", 2)[1];
       if (extension === "pdf") {
         idTipo = 2;
-        this.imagen = this.urlPDF
+        this.imagen = this.urlPDF;
       } else if (
         extension === "png" ||
         extension === "jpg" ||
         extension === "jpeg"
       ) {
-        this.imagen = require("../assets/Shika.png");
+        //this.imagen = require("../assets/Shika.png");
         idTipo = 1;
       }
       var today = new Date();
@@ -136,13 +149,18 @@ export default {
         idUsuario: this.getIdUsuario,
         idVisibilidad: idVisibilidad,
         idTipoArchivo: idTipo,
-        base64: this.imagenBase64
+        base64: this.imagenBase64,
       };
       this.axios
         .post("/uploadFile", file)
         .then((response) => {
           if (response.data.status === true) {
             Swal.fire("Archivo Subido!", "", "success");
+            this.nombreFile = "";
+            this.imagen = require("../assets/freeFile.jpg");
+            this.nombreFinal = "";
+            this.imagenBase64 = "";
+            this.selectedVisibilidad = "";
             this.$emit("newFile");
             this.$emit("close");
           } else {
@@ -163,6 +181,11 @@ export default {
         });
     },
     close() {
+      this.nombreFile = "";
+      this.nombreFinal = "";
+      this.imagen = require("../assets/freeFile.jpg");
+      this.imagenBase64 = "";
+      this.selectedVisibilidad = "";
       this.$emit("close");
     },
   },

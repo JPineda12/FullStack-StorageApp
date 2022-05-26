@@ -15,7 +15,8 @@
             class="card-top"
           >
             <div class="card-image">
-              <img :src="file.archivo_url" />
+              <img v-if="file.tipo === 'Imagen'" :src="file.archivo_url" />
+              <img v-else-if="file.tipo === 'Pdf'" :src="pdfPreview" />
             </div>
             <div class="card-text">
               <h4>{{ file.archivo }}</h4>
@@ -66,7 +67,7 @@ export default {
     Files: Array,
   },
   data() {
-    return {};
+    return { pdfPreview: require("../assets/pdficon.png") };
   },
   computed: {
     getIdUsuario() {
@@ -78,7 +79,6 @@ export default {
   },
   methods: {
     verFile(file) {
-      console.log(file.tipo);
       if (file.tipo === "Imagen") {
         Swal.fire({
           width: 530,
@@ -86,6 +86,8 @@ export default {
           imageHeight: 450,
           imageWidth: 500,
         });
+      } else {
+        window.open(file.archivo_url, "_blank");
       }
     },
     close() {

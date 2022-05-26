@@ -1,6 +1,5 @@
 CREATE DATABASE semi1_proyecto1;
 USE semi1_proyecto1;
-
 CREATE TABLE Rol(
 idRol INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
 rol VARCHAR(30) UNIQUE
@@ -55,3 +54,27 @@ FOREIGN KEY(Archivo_idUsuario) REFERENCES Usuario(idUsuario),
 FOREIGN KEY(Archivo_idVisibilidad) REFERENCES Visibilidad(idVisibilidad),
 FOREIGN KEY(Archivo_idTipoArchivo) REFERENCES Tipo_Archivo(idTipo_Archivo)
 );
+INSERT INTO semi1_proyecto1.Rol(rol) 
+VALUES("Admin");
+
+INSERT INTO semi1_proyecto1.Rol(rol)
+VALUES("User");
+
+INSERT INTO semi1_proyecto1.Visibilidad(visibilidad)
+VALUES ('Publico');
+
+INSERT INTO semi1_proyecto1.Visibilidad(visibilidad)
+VALUES ('Privado');
+
+INSERT INTO semi1_proyecto1.Visibilidad(visibilidad)
+VALUES ('Eliminado');
+
+INSERT INTO semi1_proyecto1.Tipo_Archivo(tipo)
+VALUES ('Imagen');
+
+INSERT INTO semi1_proyecto1.Tipo_Archivo(tipo)
+VALUES ('Pdf');
+
+INSERT INTO semi1_proyecto1.Estado_Amistad(estado)
+VALUES('Amigos');
+

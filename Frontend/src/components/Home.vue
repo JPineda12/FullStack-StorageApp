@@ -240,7 +240,6 @@ import UploadFile from "./UploadFile";
 import EditFile from "./EditFile";
 import SeeFiles from "./SeeFiles";
 import Swal from "sweetalert2";
-import bcrypt from "bcryptjs";
 
 export default {
   name: "Home",
@@ -277,7 +276,6 @@ export default {
     }
     try {
       this.user = JSON.parse(us);
-      //console.log(this.user);
       this.getFiles();
     } catch (e) {
       console.log("ERROR: ", e);
@@ -300,7 +298,7 @@ export default {
               let auxArch = {
                 idArchivo: response.data[i].idArchivo,
                 archivo_url: response.data[i].archivo_url,
-                fecha_subida: response.data[i].fecha_subida,
+                fecha_subida: response.data[i].fecha_subida.split("T")[0],
                 nombre: response.data[i].nombre,
                 tipo: response.data[i].tipo,
                 idVisibilidad: response.data[i].idVisibilidad,
@@ -405,52 +403,40 @@ export default {
         if (result.isConfirmed) {
           let us = {
             user: this.user.username,
+            contrasena: result.value,
           };
           this.axios
             .post("/login", us)
             .then((response) => {
-              if (response.data.length > 0) {
-                bcrypt.compare(
-                  result.value,
-                  response.data[0].contrasena,
-                  function (err, resultx) {
-                    if (err) {
-                      throw err;
-                    }
-                    if (resultx === true) {
-                      this.axios
-                        .put(`/deleteFile/${archivo.idArchivo}`)
-                        .then((response) => {
-                          if (response.data.status === true) {
-                            Swal.fire(
-                              "Eliminado!",
-                              "El archivo ha sido eliminado satisfactoriamente",
-                              "success"
-                            );
-                            if (archivo.visibilidad === "Publico") {
-                              const index = this.publicFiles.indexOf(archivo);
-                              if (index > -1) {
-                                this.publicFiles.splice(index, 1);
-                              }
-                            } else {
-                              const index = this.privateFiles.indexOf(archivo);
-                              if (index > -1) {
-                                this.privateFiles.splice(index, 1);
-                              }
-                            }
-                          } else {
-                            Swal.fire(
-                              "Error!",
-                              "No se pudo hacer la eliminacion en el servidor",
-                              "error"
-                            );
-                          }
-                        });
+              if (response.data.status === true) {
+                this.axios
+                  .put(`/deleteFile/${archivo.idArchivo}`)
+                  .then((response) => {
+                    if (response.data.status === true) {
+                      Swal.fire(
+                        "Eliminado!",
+                        "El archivo ha sido eliminado satisfactoriamente",
+                        "success"
+                      );
+                      if (archivo.visibilidad === "Publico") {
+                        const index = this.publicFiles.indexOf(archivo);
+                        if (index > -1) {
+                          this.publicFiles.splice(index, 1);
+                        }
+                      } else {
+                        const index = this.privateFiles.indexOf(archivo);
+                        if (index > -1) {
+                          this.privateFiles.splice(index, 1);
+                        }
+                      }
                     } else {
-                      Swal.fire("Error!", "Contraseña Incorrecta", "error");
+                      Swal.fire(
+                        "Error!",
+                        "No se pudo hacer la eliminacion en el servidor",
+                        "error"
+                      );
                     }
-                  }.bind(this)
-                );
+                  });
               } else {
                 Swal.fire("Error!", "Contraseña Incorrecta", "error");
               }
@@ -492,7 +478,7 @@ export default {
               idArchivo: response.data[i].idArchivo,
               archivo: response.data[i].archivo,
               archivo_url: response.data[i].archivo_url,
-              fecha_subida: response.data[i].fecha_subida,
+              fecha_subida: response.data[i].fecha_subida.split("T")[0],
               tipo: response.data[i].tipo,
             };
             this.FriendsFiles.push(aux);
@@ -509,7 +495,16 @@ export default {
     },
 
     viewFile(archivo) {
-      console.log(archivo);
+      if (archivo.tipo === "Imagen") {
+        Swal.fire({
+          width: 530,
+          imageUrl: archivo.archivo_url,
+          imageHeight: 450,
+          imageWidth: 500,
+        });
+      } else {
+        window.open(archivo.archivo_url, "_blank");
+      }
     },
     logout() {
       localStorage.clear();
