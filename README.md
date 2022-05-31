@@ -60,22 +60,20 @@ That being said, The version right here (latest commit) is a <em>**local**</em> 
 
 5 For the backend to work you need a .env file (in the backend directory) with your own credentials, it should look like this: 
    ```sh
-   //NodeJS Port
-      PORT=3000 //The port you want the backend to be (If you change the default (3000), you should also change it in frontend's main.js file )
-   //MySQL Credentials
+   #NodeJS Port
+      PORT=3000 #The port you want the backend to be (If you change the default (3000), you should also change it in frontend's main.js file )
+   #MySQL Credentials
     USER_MYSQL      = yourname
     PASSWORD_MYSQL  = yourpassword
-    HOST_MYSQL      = localhost //where your MySQL instance is hosted
-    PORT_MYSQL      = 3306  //Default port
-    DATABASE_MYSQL  = semi1_proyecto1 //Name of the database (this is the default that is created in [scripttablas.sql](scripttablas.sql)
-    //HTTP server for files (the filed that are uploaded when you create a new user (profile picture), or upload files to your drive (imgs or PDFS)
+    HOST_MYSQL      = localhost #where your MySQL instance is hosted
+    PORT_MYSQL      = 3306  #Default port
+    DATABASE_MYSQL  = semi1_proyecto1 #Name of the database (this is the default that is created in scripttablas.sql
+    #HTTP server for files (the filed that are uploaded when you create a new user (profile picture), or upload files to your drive (imgs or PDFS)
     FILES_SERVER_URL = "http://localhost:3030"
    ```
-   ```sh
-   <p align="center"> 
+  <p align="center"> 
   <img align="center" src="doc-imgs/env.png" />
   </p>
-   ```
 
 
 
