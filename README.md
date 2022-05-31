@@ -56,7 +56,7 @@ That being said, The version right here (latest commit) is a <em>**local**</em> 
    npm install
    ```
 4 Create the Database
-  - On your own MySQL instance run the .sql script from this repo called [scripttablas.sql](scripttablas.sql). This script includes the tables and the initial data that the app needs to work properly. You can see the database diagram [Here](Diagrama.png) (Relational Model).
+  - On your own MySQL instance run the .sql script from this repo called [scripttablas.sql](scripttablas.sql). This script includes the tables and the initial data that the app needs to work properly. You can see the database diagram [Here](doc-imgs/diagrama.svg) (Relational Model).
 
 5 For the backend to work you need a .env file (in the backend directory) with your own credentials, it should look like this: 
    ```sh
