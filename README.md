@@ -4,6 +4,9 @@
 |------------------------------------|-----------|
 | Juan Antonio Pineda Espino              | jpinedaespino@gmail.com |
 
+  <p align="center"> 
+  <img align="center" src="doc-imgs/logo_0usac.svg" />
+  </p>
 
 <hr>
 
@@ -51,7 +54,7 @@ That being said, The version right here (latest commit) is a <em>**local**</em> 
    ```sh
    npm install
    ```
-3 Go to the folder [Backend](Backend) and install NPM packaged
+3 Go to the folder [Backend](Backend) and install NPM packages
    ```sh
    npm install
    ```
@@ -76,5 +79,28 @@ That being said, The version right here (latest commit) is a <em>**local**</em> 
   </p>
 
 
+### Usage
+1. Run Backend using:
+   ```sh
+   npm run start
+   ```
+2. Run Frontend using:
+   ```sh
+   npm run serve
+   ```
+### The App 
+
+The frontend runs on vue default port 8080. 
+
+```
+http://localhost:8080
+```
+#### Login
+![image](https://user-images.githubusercontent.com/39974147/171285024-2759983a-460e-4874-ab97-e52809972b28.png)
 
 
+#### Home Page
+![image](doc-imgs/gif_home.gif)
+
+#### File Viewing
+![image](doc-imgs/View%20File.gif)
