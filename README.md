@@ -5,7 +5,7 @@
 | Juan Antonio Pineda Espino              | jpinedaespino@gmail.com |
 
   <p align="center"> 
-  <img align="center" src="doc-imgs/logo_0usac.svg" />
+  <img align="center" width=400px src="doc-imgs/logo_usac.svg" />
   </p>
 
 <hr>
